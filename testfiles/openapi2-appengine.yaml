@@ -1,0 +1,4712 @@
+swagger: "2.0"
+info:
+  title: "JustPlay API"
+  description: "JustPlay app API interactions"
+  version: "1.0.0"
+schemes:
+  - "https"
+securityDefinitions:
+  BasicAuth:
+    type: basic
+x-google-backend:
+  address: "https://test-dot-playspot-server-dev.appspot.com/"
+  disable_auth: true
+paths:
+  /playtime/users:
+    post:
+      description: "Create a JustPlay user"
+      tags:
+        - Android
+        - ONBOARDING
+      operationId: "createUser"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - name: request
+          in: body
+          description: "Request for user creation"
+          schema:
+            $ref: '#/definitions/CREATE_USER_REQUEST'
+      responses:
+        200:
+          description: "Success"
+          schema:
+            $ref: '#/definitions/CREATE_USER_RESPONSE'
+          headers:
+            X-Playtime-Market:
+              type: string
+              description: "JustPlay market"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  # Android section
+  /playtime/android/users:
+    post:
+      description: "Create a JustPlay user"
+      tags:
+        - Android
+        - ONBOARDING
+      operationId: "createUser_android"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - name: request
+          in: body
+          description: "Request for user creation"
+          schema:
+            type: object
+            properties:
+              payload:
+                type: string
+                description: 'String encoded JSON of original create-user request (see #/definitions/CREATE_USER_REQUEST)'
+              token:
+                type: string
+                description: 'Play Integrity Standard Request token, with requestHash equal to SHA256 (hex) hash of payload'
+      responses:
+        200:
+          description: "Success"
+          schema:
+            $ref: '#/definitions/CREATE_USER_RESPONSE'
+          headers:
+            X-Playtime-Market:
+              type: string
+              description: "JustPlay market"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/android/users/online:
+    get:
+      description: "Get online users count"
+      tags:
+        - Android
+        - TRACKING
+      operationId: "android_getOnlineUsers"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+      responses:
+        200:
+          description: "Online users count"
+          schema:
+            type: object
+            required:
+              - online
+            properties:
+              online:
+                type: integer
+                description: "Online users count"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/android/users/{userId}/pre-game-screen-opened:
+    post:
+      description: "Signal server that user opened pre game screen"
+      tags:
+        - Android
+        - TRACKING
+      operationId: "postUserPreGameScreenOpened"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "OK"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/android/users/{userId}/provider-survey:
+    post:
+      description: "Submit provider survey"
+      tags:
+        - Android
+        - FEEDBACK
+      operationId: "android_submitProviderSurvey"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Provider survey data"
+          schema:
+            type: object
+            required:
+              - userChoice
+            properties:
+              userChoice:
+                type: array
+                items:
+                  type: string
+                description: "Providers user have chosen"
+              ownAnswer:
+                type: string
+                description: "Additional answer by user"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/notificationReport:
+    post:
+      description: "Notification open webhook"
+      tags:
+        - Android
+        - TO_DELETE
+      operationId: "notificationReport"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for notification report"
+          schema:
+            type: object
+            required:
+              - notificationId
+            properties:
+              notificationId:
+                type: string
+                format: uuid
+                description: "Notification Id"
+              action:
+                type: string
+                description: "What user actually do: tap/swipe etc"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/offers:
+    get:
+      description: "Get offers"
+      tags:
+        - Android
+        - ENGAGEMENT
+      operationId: "getOffers"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Success"
+          schema:
+            type: object
+            properties:
+              multiRowItems:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - placement
+                    - items
+                  properties:
+                    title:
+                      type: string
+                    placement:
+                      type: string
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            description: "game"
+                          style:
+                            type: string
+                          id:
+                            type: string
+                            description: "Offer identifier"
+                          imageUrl:
+                            type: string
+                            description: "URL of offer image"
+                          subtext:
+                            type: string
+                            description: "Text of offer"
+                          action:
+                            type: string
+                            description: "Small offer only: one of [market|offerwall|facebookLogin|videoAd|instagramLogin]"
+                          activityName:
+                            type: string
+                            description: "Large offer only: Related app main activity name. For valid android 11 installed game redirection"
+                          isEnabled:
+                            type: boolean
+                            description: "Large offer only: Enabled flag"
+                          title:
+                            type: string
+                            description: "Large offer only: Game title"
+                          subtitle:
+                            type: string
+                            description: "Large offer only: Game sub-title"
+                          iconUrl:
+                            type: string
+                            description: "Large offer only: Game icon URL"
+                          applicationId:
+                            type: string
+                            description: "Large offer only: Game application identifier (package id)"
+                          infoTextInstall:
+                            type: string
+                            description: "Large offer only: Text before game installation"
+                          infoTextPlay:
+                            type: string
+                            description: "Large offer only: Text after game installation"
+                          showInstallImage:
+                            type: boolean
+                            description: "Large offer only: Show install picture (true) / show legacy install text (false)"
+                          installImageUrl:
+                            type: string
+                            description: "Large offer only: Image of game"
+                          videoPreviewUrl:
+                            type: string
+                            description: "Large offer only: Video of game"
+                          showVideoPreview:
+                            type: boolean
+                            description: "Large offer only: Show video preview instead of image preview"
+                          infoTextInstallTop:
+                            type: string
+                            description: "Large offer only: Install text (top chunk)"
+                          infoTextInstallBottom:
+                            type: string
+                            description: "Large offer only: Install text (bottom chunk)"
+                          backGroundColor:
+                            type: string
+                            description: "Large offer only: Game background color"
+                          installationLink:
+                            type: string
+                            description: "Large offer only: installationLink"
+                          wasPlayed:
+                            type: boolean
+                            description: "Large offer only: Is game was played"
+                          newlyInstalledDescription:
+                            type: string
+                            description: "Large offer only: newlyInstalledDescription"
+                          wasViewed:
+                            type: boolean
+                            description: "Large offer only: Is game was viewed"
+                          requireAnalyticsConsent:
+                            type: boolean
+                            description: "Large/Small offer only: Defines if user needs to consent to GDPR analytics to open this offer"
+                          showBadge:
+                            type: boolean
+                            description: "The flag for to show best coins badge"
+                          badgeUrl:
+                            type: string
+                            description: "An url to alternative best coins badge picture"
+                          gameAdditionalWidgets:
+                            $ref: '#/definitions/GAME_ADDITIONAL_WIDGETS'
+                          inAppInstallDetails:
+                            $ref: '#/definitions/IN_APP_INSTALL_DETAILS'
+              items:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - type
+                    - id
+                    - imageUrl
+                    - subtext
+                  properties:
+                    type:
+                      type: string
+                      description: "Type of offer. One of [small|large]"
+                    id:
+                      type: string
+                      description: "Offer identifier"
+                    imageUrl:
+                      type: string
+                      description: "URL of offer image"
+                    subtext:
+                      type: string
+                      description: "Text of offer"
+                    action:
+                      type: string
+                      description: "Small offer only: one of [market|offerwall|facebookLogin|videoAd|instagramLogin]"
+                    activityName:
+                      type: string
+                      description: "Large offer only: Related app main activity name. For valid android 11 installed game redirection"
+                    isEnabled:
+                      type: boolean
+                      description: "Large offer only: Enabled flag"
+                    title:
+                      type: string
+                      description: "Large offer only: Game title"
+                    subtitle:
+                      type: string
+                      description: "Large offer only: Game sub-title"
+                    iconUrl:
+                      type: string
+                      description: "Large offer only: Game icon URL"
+                    applicationId:
+                      type: string
+                      description: "Large offer only: Game application identifier (package id)"
+                    infoTextInstall:
+                      type: string
+                      description: "Large offer only: Text before game installation"
+                    infoTextPlay:
+                      type: string
+                      description: "Large offer only: Text after game installation"
+                    showInstallImage:
+                      type: boolean
+                      description: "Large offer only: Show install picture (true) / show legacy install text (false)"
+                    installImageUrl:
+                      type: string
+                      description: "Large offer only: Image of game"
+                    videoPreviewUrl:
+                      type: string
+                      description: "Large offer only: Video of game"
+                    showVideoPreview:
+                      type: boolean
+                      description: "Large offer only: Show video preview instead of image preview"
+                    infoTextInstallTop:
+                      type: string
+                      description: "Large offer only: Install text (top chunk)"
+                    infoTextInstallBottom:
+                      type: string
+                      description: "Large offer only: Install text (bottom chunk)"
+                    backGroundColor:
+                      type: string
+                      description: "Large offer only: Game background color"
+                    installationLink:
+                      type: string
+                      description: "Large offer only: installationLink"
+                    wasPlayed:
+                      type: boolean
+                      description: "Large offer only: Is game was played"
+                    newlyInstalledDescription:
+                      type: string
+                      description: "Large offer only: newlyInstalledDescription"
+                    wasViewed:
+                      type: boolean
+                      description: "Large offer only: Is game was viewed"
+                    requireAnalyticsConsent:
+                      type: boolean
+                      description: "Large/Small offer only: Defines if user needs to consent to GDPR analytics to open this offer"
+                    showBadge:
+                      type: boolean
+                      description: "The flag for to show best coins badge"
+                    badgeUrl:
+                      type: string
+                      description: "An url to alternative best coins badge picture"
+                    gameAdditionalWidgets:
+                      $ref: '#/definitions/GAME_ADDITIONAL_WIDGETS'
+                    inAppInstallDetails:
+                      $ref: '#/definitions/IN_APP_INSTALL_DETAILS'
+                    lockedCount:
+                      type: integer
+                      description: "Locked games widget only: Number of games that user can still discover by playing other games"
+                    gameIcons:
+                      type: array
+                      items:
+                        type: string
+                      description: "Locked games widget only: Icons of next 5 games to be discovered by user"
+                    text:
+                      type: string
+                      description: "Unlocked Game Reminder widget only: Text associated with offer"
+                    unlockedGameId:
+                      type: string
+                      description: "Unlocked Game Reminder widget only: ID of the recently unlocked game"
+                    autoClick:
+                      type: string
+                      description: "Unlocked Game Reminder widget only: defines if Try It Out button should click on the associated offer"
+              config:
+                type: object
+                required:
+                  - offerWallPlacementId
+                  - offerWallType
+                  - offerWallAppId
+                properties:
+                  offerWallPlacementId:
+                    type: string
+                    description: "Offer wall placement identifier"
+                  offerWallType:
+                    type: string
+                    description: "Type of the offerwall, e.g. TAPJOY"
+                  offerWallAppId:
+                    type: string
+                    description: "Our application identifier within offerwall network"
+                  offerWallSecurityToken:
+                    type: string
+                    description: "Additional key that is required to initialize offerwall, if any"
+              offerwallConfigs:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - offerWallPlacementId
+                    - offerWallType
+                    - offerWallAppId
+                  properties:
+                    offerWallPlacementId:
+                      type: string
+                      description: "Offer wall placement identifier"
+                    offerWallType:
+                      type: string
+                      description: "Type of the offerwall, e.g. TAPJOY"
+                    offerWallAppId:
+                      type: string
+                      description: "Our application identifier within offerwall network"
+                    offerWallSecurityToken:
+                      type: string
+                      description: "Additional key that is required to initialize offerwall, if any"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/offers/{offerId}/completion:
+    post:
+      description: "Offer completion webhook"
+      tags:
+        - Android
+        - ENGAGEMENT
+      operationId: "completeOffer"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: offerId
+          in: path
+          description: "Offer identifier"
+          type: integer
+          required: true
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/offers/mark-viewed-games:
+    post:
+      description: "Track viewed games"
+      tags:
+        - Android
+        - ENGAGEMENT
+      operationId: "markViewedGames"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for track viewed games"
+          schema:
+            type: object
+            required:
+              - viewedGamesIds
+            properties:
+              viewedGamesIds:
+                type: array
+                items:
+                  type: string
+                description: "Game IDs"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/offers/preferred-games:
+    get:
+      description: "Pick preferred games from the list"
+      tags:
+        - Android
+        - ENGAGEMENT
+      operationId: "getPickPreferredGames"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Success"
+          schema:
+            type: object
+            properties:
+              items:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - gameId
+                  properties:
+                    gameId:
+                      type: string
+                    cardType:
+                      type: string
+                    name:
+                      type: string
+                    imageUrl:
+                      type: string
+                    imageHeight:
+                      type: integer
+                    tags:
+                      type: array
+                      items:
+                        type: string
+                      description: "Tags for Card that displays tags"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/offers/preferred-games/selected:
+    post:
+      description: "Send back list of preferred games picked by user"
+      tags:
+        - Android
+        - ENGAGEMENT
+      operationId: "postPreferredGames"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Provide list of preferred games by user"
+          schema:
+            type: object
+            required:
+              - likedGames
+              - dislikedGames
+            properties:
+              likedGames:
+                type: array
+                items:
+                  type: string
+                description: "games that user liked"
+              dislikedGames:
+                type: array
+                items:
+                  type: string
+                description: "games that user disliked"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/offers/{offerId}/dismiss:
+    post:
+      description: "Dismiss remindable offer"
+      tags:
+        - Android
+        - ENGAGEMENT
+      operationId: "dismissOffer"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: offerId
+          in: path
+          description: "Offer identifier"
+          type: integer
+          required: true
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/offers/{offerId}/playstore-opened:
+    post:
+      description: "Notify that google playstore opened to install game"
+      tags:
+        - Android
+        - ENGAGEMENT
+      operationId: "playstoreOpened"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: offerId
+          in: path
+          description: "Offer identifier"
+          type: integer
+          required: true
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/welcome-coins-acceptation:
+    post:
+      description: "Welcome Coins acceptation webhook"
+      tags:
+        - Android
+        - TRACKING
+      operationId: "welcomeCoinsAcceptation"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/claim-goal-coins:
+    post:
+      description: "Claim bonus coins from Game Coin Goals"
+      tags:
+        - Android
+        - TRACKING
+      operationId: "claimGoalCoins"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}:
+    get:
+      description: "Get user data"
+      tags:
+        - Android
+        - GENERIC
+      operationId: "getUserData"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "User data"
+          headers:
+            X-Playtime-Desired-AppVersion:
+              type: string
+              description: "Desired app version"
+            X-MessageToUser:
+              type: string
+              description: "Message that should be show it user via pop-up message"
+          schema:
+            type: object
+            required:
+              - id
+              - coins
+              - cashoutAvailable
+              - useRewards
+              - experimentVariations
+              - giftBoxInsteadOfEarnings
+            properties:
+              id:
+                type: string
+                format: uuid
+                description: "User identifier"
+              coins:
+                type: integer
+                description: "Goal coins (previously - coins visible on main screen)"
+              coinsBalance:
+                type: integer
+                format: int64
+                description: "Coins visible on main screen as main current coins balance"
+              currentLevelName:
+                type: string
+                description: "DEPRECATED. Current level name"
+              currentLevelCoinThreshold:
+                type: integer
+                description: "Current level coin threshold"
+              nextLevelName:
+                type: string
+                description: "DEPRECATED. Next level name"
+              nextLevelCoinThreshold:
+                type: integer
+                description: "Next level coin threshold"
+              coinGoal:
+                type: integer
+                description: "Coin goal for current cashout period"
+              coinGoalString:
+                type: string
+                description: "Coin goal for current cashout period as string"
+              cashoutAvailable:
+                type: boolean
+                description: "Is cashout available currently"
+              cashoutAmount:
+                type: string
+                description: "Available earnings amount to cash out"
+              nextCashoutTimestamp:
+                type: string
+                format: date-time
+                description: "Current cashout period end (start of next cashout period) timestamp"
+              useRewards:
+                type: boolean
+                description: "DEPRECATED. Show rewards icon"
+              showRewards:
+                type: boolean
+                description: "Show rewards"
+              experimentVariations:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - id
+                    - key
+                    - experimentKey
+                  properties:
+                    id:
+                      type: string
+                      description: "Variation identifier"
+                    key:
+                      type: string
+                      description: "Variation key"
+                    experimentKey:
+                      type: string
+                      description: "Experiment key"
+              timestamp:
+                type: string
+                description: "Timestamp"
+              coinGoalLabel:
+                type: string
+                description: "Coin goal label"
+              expLabels:
+                type: object
+                additionalProperties:
+                  type: string
+                description: "Additional labels"
+              tutorialSteps:
+                description: "Tutorial steps for user"
+                type: array
+                items:
+                  type: string
+              videoAdIntervalSeconds:
+                type: integer
+                description: "A cool down time in seconds between video ad offers"
+              showPaymentProvidersWithoutEarnings:
+                type: boolean
+                description: "Show payment providers without earnings"
+              showTimerInCoinGoalSection:
+                type: boolean
+                description: "Show timer in coinGoal section"
+              notificationPermissionPopup:
+                type: string
+                description: "Configuration of notification permission popup"
+              threeDotMenuItems:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - action
+                    - label
+                    - link
+                  properties:
+                    action:
+                      type: object
+                      required:
+                        - name
+                      description: "Menu action"
+                      properties:
+                        name:
+                          type: string
+                          description: "Action name"
+                        parameters:
+                          type: array
+                          description: "Action parameters"
+                          items:
+                            type: string
+                            description: "Action parameter"
+                    label:
+                      type: string
+                      description: "Menu label"
+              useAmplitudeAnalytics:
+                type: boolean
+                description: "Defines if user is AmplitudeAnalytics participant"
+              useOffersTabs:
+                type: boolean
+                description: "Defines if user is OffersTabs participant"
+              market:
+                type: string
+                description: "Server's market (same as returned on user creation)"
+              attestationRequired:
+                type: boolean
+                description: "Indicates whether attestation is required for user"
+              consentedToAnalytics:
+                type: boolean
+                description: "Indicates that user consented to GDPR analytics or is not part of GDPR country"
+              enablePlaystoreTrackingNotifications:
+                type: boolean
+                description: "Defines if application should notify backend about opening google play to install game"
+              playersOnlineType:
+                type: string
+                description: "Indicates experiment variation value with users online count to be displayed to User or not. Deprecated (Offboarded from app version 63)"
+              gameGoal:
+                $ref: '#/definitions/GAME_GOAL'
+              cashoutButtonStyle:
+                type: string
+                description: "Style for Cashout button. Values: [<null>, GRAY_DEFAULT, GRAY_GREEN]"
+              giftBoxInsteadOfEarnings:
+                type: boolean
+                description: "Whether to hide earnings amount and show gift box icon instead. Values: [false, true]"
+              topPartWidgets:
+                type: object
+                description: "Widgets at the top of application screen"
+                properties:
+                  singlePartWidget:
+                    $ref: '#/definitions/TOP_PART_WIDGET'
+                  doublePartWidget:
+                    type: array
+                    items:
+                      $ref: '#/definitions/TOP_PART_WIDGET'
+              paymentProviderSurvey:
+                type: object
+                description: "Payment provider survey"
+                properties:
+                  mode:
+                    type: string
+                    enum:
+                      - "onClose"
+                      - "insideList"
+                  type:
+                    type: string
+                    enum:
+                      - "specificProvider"
+                      - "categoriesProviders"
+              cashoutProgressBarMode:
+                type: string
+                description: "Cashout progress bar mode"
+                enum:
+                  - "<null>"
+                  - "linear"
+                  - "dashed"
+                  - "circles"
+              incompleteCashoutRestoringMode:
+                type: string
+                description: "Restoring cashout mode"
+                enum:
+                  - "<null>"
+                  - "restore"
+              numberSeparatorType:
+                type: string
+                description: "Coins amount separator type"
+                enum:
+                  - "<null>"
+                  - "locale"
+                  - "comma"
+                  - "period"
+                  - "space"
+              cashoutBonusCoins:
+                $ref: '#/definitions/CASHOUT_COINS_API_DTO'
+              faceScanPreScreen:
+                type: object
+                description: "Information for face scan pre screen experimental UI"
+                properties:
+                  exampleImageUrl:
+                    type: string
+                    description: "Image to be displayed at the popup center"
+                  screenType:
+                    type: string
+                    description: "Type of the face scan pre screen dialog"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/googleAdId:
+    post:
+      description: "Associate Google Ad Id with user"
+      tags:
+        - Android
+        - ONBOARDING
+      operationId: "setGoogleAdId"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for Google Ad Id assigning"
+          schema:
+            type: object
+            required:
+              - googleAdId
+            properties:
+              googleAdId:
+                type: string
+                format: uuid
+                description: "Google Ad Id"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/appSetId:
+    post:
+      description: "Associate AppSetId with user"
+      tags:
+        - Android
+        - ONBOARDING
+      operationId: "setAppSetId"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for ApPSetId assigning"
+          schema:
+            type: object
+            required:
+              - appSetId
+            properties:
+              appSetId:
+                type: string
+                format: uuid
+                description: "appSetId"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/deviceToken:
+    post:
+      description: "Associate device token with user"
+      tags:
+        - Android
+        - ONBOARDING
+      operationId: "setDeviceToken"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for device token assigning"
+          schema:
+            type: object
+            required:
+              - deviceToken
+            properties:
+              deviceToken:
+                type: string
+                description: "Device token"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/firebaseAppInstanceId:
+    post:
+      description: "Associate firebase app instance id with user"
+      tags:
+        - Android
+        - ONBOARDING
+      operationId: "setFirebaseInstanceId"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for firebase app instance id assigning"
+          schema:
+            type: object
+            required:
+              - firebaseAppInstanceId
+            properties:
+              firebaseAppInstanceId:
+                type: string
+                description: "Firebase app instance id"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/adjustId:
+    post:
+      description: "Associate Adjust Id with user"
+      tags:
+        - Android
+        - ONBOARDING
+      operationId: "setAdjustId"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for Adjust id assigning"
+          schema:
+            type: object
+            required:
+              - adjustId
+            properties:
+              adjustId:
+                type: string
+                description: "Adjust id"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/consent:
+    post:
+      description: "Track user consent"
+      tags:
+        - Android
+        - ENGAGEMENT
+      operationId: "setConsentInfo"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Consent to analytics/ads"
+          schema:
+            type: object
+            required:
+              - hasConsentedToAnalytics
+              - hasConsentedToTargetedAdvertisement
+            properties:
+              hasConsentedToAnalytics:
+                type: boolean
+                description: "Consent to analytics"
+              hasConsentedToTargetedAdvertisement:
+                type: boolean
+                description: "Consent to ads"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/delete:
+    post:
+      description: "Request user deletion"
+      tags:
+        - Android
+        - GENERIC
+      operationId: "requestUserDeletion"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/verification/initiate:
+    post:
+      description: "Initiate user verification session"
+      tags:
+        - Android
+        - VERIFICATION
+      operationId: "initiateVerification"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for verification initiation"
+          schema:
+            type: object
+            required:
+              - provider
+              - email
+            properties:
+              provider:
+                type: string
+                description: "Payment provider. One of [paypal|amazon|google_play|target|best_buy|walmart|burger_king|walmart|burger_king|reward_link|doctors_without_borders|clean_air_task_force|the_hunger_project]"
+              email:
+                type: string
+                description: "User's email"
+      responses:
+        200:
+          description: "User data"
+          schema:
+            type: object
+            required:
+              - sessionId
+              - userId
+              - expiredAt
+              - verification
+            properties:
+              sessionId:
+                type: string
+                format: uuid
+                description: "Identifier of verification session"
+              userId:
+                type: string
+                format: uuid
+                description: "User identifier"
+              expiredAt:
+                type: string
+                format: date-time
+                description: "Session expiration timestamp"
+              verification:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - type
+                    - status
+                    - order
+                  properties:
+                    type:
+                      type: string
+                      description: "Verification type [FACE|PHONE]"
+                    status:
+                      type: string
+                      description: "Verification status [REQUIRED|VERIFIED|ALLOWED_ONCE]"
+                    order:
+                      type: integer
+                      description: "Order of verification step"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/verification/verify-face:
+    post:
+      description: "Verify user's face"
+      tags:
+        - Android
+        - VERIFICATION
+      operationId: "verifyFace"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/VERIFICATION_SESSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for face verification"
+          schema:
+            type: object
+            required:
+              - faceScan
+              - auditTrailImage
+              - lowQualityAuditTrailImage
+            properties:
+              faceScan:
+                type: string
+                description: "Face scan result"
+              auditTrailImage:
+                type: string
+                description: "Face image for audit purposes"
+              lowQualityAuditTrailImage:
+                type: string
+                description: "Face image for audit purposes (low quality)"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/verification/validateEmail:
+    post:
+      description: "Validate email"
+      tags:
+        - Android
+        - VERIFICATION
+      operationId: "emailValidation"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Email validation request"
+          schema:
+            type: object
+            required:
+              - email
+            properties:
+              email:
+                type: string
+                description: "Email for validation"
+      responses:
+        200:
+          description: "Email validation result"
+          schema:
+            type: object
+            required:
+              - isEmailValid
+            properties:
+              isEmailValid:
+                type: boolean
+                description: "Is email valid"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/verification/validateUserHandle:
+    post:
+      description: "Validate Venmo User Handle"
+      tags:
+        - Android
+        - VERIFICATION
+      operationId: "venmoUserValidation"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "User Handle validation request"
+          schema:
+            type: object
+            required:
+              - userHandle
+            properties:
+              userHandle:
+                type: string
+                description: "User Handle for validation"
+      responses:
+        200:
+          description: "User Handle validation result"
+          schema:
+            type: object
+            required:
+              - isUserHandleValid
+            properties:
+              isUserHandleValid:
+                type: boolean
+                description: "Is user handle valid"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/verification/verify-phone:
+    post:
+      description: "Verify user's phone"
+      tags:
+        - Android
+        - VERIFICATION
+      operationId: "verifyPhone"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/VERIFICATION_SESSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: X-Firebase-IdToken
+          in: header
+          description: "Firebase token related to phone verification"
+          type: string
+          required: true
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/verification/location:
+    post:
+      description: "Verify GPS location"
+      tags:
+        - Android
+        - VERIFICATION
+      operationId: "androidLocationVerification"
+      parameters:
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/VERIFICATION_SESSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Location verification request"
+          schema:
+            type: object
+            required:
+              - location
+            properties:
+              location:
+                type: string
+                description: "Country detected by GPS location"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/cashout:
+    get:
+      description: "Get user cashout data"
+      tags:
+        - Android
+        - CASHOUT
+      operationId: "getCashoutData"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Cashout data"
+          headers:
+            X-MessageToUser:
+              type: string
+              description: "Message that should be show it user via pop-up message"
+          schema:
+            type: object
+            required:
+              - isEnabled
+              - headerText
+              - iconUrl
+              - nextCashoutTimestamp
+              - options
+              - bonusStatus
+              - disclaimer
+              - hideAddress
+              - providersImageList
+              - giftBoxInsteadOfEarnings
+            properties:
+              isEnabled:
+                type: boolean
+                description: "Is cashout enabled"
+              headerText:
+                type: string
+                description: "Header label text"
+              iconUrl:
+                type: string
+                description: "Header label text"
+              nextCashoutTimestamp:
+                type: string
+                format: date-time
+                description: "Next cashout time instant"
+              amountText:
+                type: string
+                description: "Formatted amount"
+              options:
+                type: array
+                description: "List of available cashout providers"
+                items:
+                  description: "Cashout provider"
+                  $ref: '#/definitions/CASHOUT_PROVIDER'
+              bonusStatus:
+                type: object
+                description: "Bonus info"
+                required:
+                  - isBonusButtonVisible
+                properties:
+                  isBonusButtonVisible:
+                    type: boolean
+                    description: "Is bonus available"
+                  isFirstCountdown:
+                    type: boolean
+                    description: "Is first cashout period"
+                  bonusAmountText:
+                    type: string
+                    description: "Text message"
+                  hasUserAchievedBonusThreshold:
+                    type: boolean
+                    description: "Bonus threshold is achieved"
+                  lifetimeEarningsText:
+                    type: string
+                    description: "Lifetime earnings"
+                  bonusThresholdText:
+                    type: string
+                    description: "Bonus threshold text"
+                  lifetimeCashoutsText:
+                    type: string
+                    description: "Lifetime cashout text"
+              disclaimer:
+                type: string
+                description: "Cashout disclaimer"
+              useRewards:
+                type: boolean
+                description: "Show rewards list icon"
+              hideAddress:
+                type: boolean
+                description: "Hide address input field"
+              providersImageList:
+                type: array
+                items:
+                  type: string
+                  description: "Provider images URLs"
+              timestamp:
+                type: string
+                format: date-time
+                description: "Current server timestamp"
+              cashoutFormType:
+                type: string
+                description: "hide address cashout form type: [HIDE_ADDRESS|CONFIRM_EMAIL]"
+              consentedToAnalytics:
+                type: boolean
+                description: "Indicates that user consented to GDPR analytics or is not part of GDPR country"
+              oneClickType:
+                type: string
+                description: "Indicates one click cashout type: [CONFIRM_ONLY|ONE_CLICK_ONLY|CONFIRM_AND_ONE_CLICK]"
+              videoAdType:
+                type: string
+                description: "Video ad after cashout type: [interstitial|rewarded]. Deprecated (always interstitial)"
+              cashoutButtonStyle:
+                type: string
+                description: "Style for Cashout button. Values: [<null>, GRAY_DEFAULT, GRAY_GREEN]"
+              giftBoxInsteadOfEarnings:
+                type: boolean
+                description: "Whether to hide earnings amount and show gift box icon instead. Values: [false, true]"
+              cashoutProgressBarMode:
+                type: string
+                description: "Cashout progress bar mode"
+                enum:
+                  - "<null>"
+                  - "linear"
+                  - "dashed"
+                  - "circles"
+
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+    post:
+      deprecated: true
+      description: "Initiate cashout. Deprecated in favor to /cashout/demand"
+      tags:
+        - Android
+        - CASHOUT
+      operationId: "initiateCashout"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for cashout initiation"
+          schema:
+            type: object
+            required:
+              - provider
+              - name
+              - email
+              - isBonusRequest
+            properties:
+              provider:
+                type: string
+                description: "Payment provider. One of [paypal|amazon|google_play|target|best_buy|walmart|burger_king|walmart|burger_king|reward_link|doctors_without_borders|clean_air_task_force|the_hunger_project]"
+              name:
+                type: string
+                description: "User name"
+              address:
+                type: string
+                description: "User address"
+              email:
+                type: string
+                description: "User email"
+              isBonusRequest:
+                type: boolean
+                description: "Is bonus cash out (vs usual earnings cash out)"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/cashout/demand:
+    post:
+      description: "Initiate cashout"
+      tags:
+        - Android
+        - CASHOUT
+      operationId: "initiateCashoutDemand"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/VERIFICATION_SESSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for cashout initiation"
+          schema:
+            type: object
+            required:
+              - provider
+              - name
+              - isBonusRequest
+            properties:
+              provider:
+                type: string
+                description: "Payment provider. One of [paypal|amazon|google_play|target|best_buy|walmart|burger_king|walmart|burger_king|reward_link|doctors_without_borders|clean_air_task_force|the_hunger_project]"
+              name:
+                type: string
+                description: "User name"
+              address:
+                type: string
+                description: "User address"
+              email:
+                type: string
+                description: "User email. Required unless 'userHandle' is provided."
+              isBonusRequest:
+                type: string
+                description: "Is bonus cash out (vs usual earnings cash out)"
+              userHandle:
+                type: string
+                description: "User handle for Venmo payments. Required when 'provider' is set to 'Venmo'; null accepted otherwise."
+      responses:
+        200:
+          description: "Cashout data"
+          schema:
+            type: object
+            required:
+              - useRewards
+            properties:
+              useRewards:
+                type: boolean
+                description: "Show rewards icon. Deprecated (always true)"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/cashout/stats:
+    get:
+      description: "Get user cashout statistics"
+      tags:
+        - Android
+        - CASHOUT
+      operationId: "getCashoutStats"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Cashout statistics"
+          schema:
+            type: object
+            required:
+              - totalEarningsAmount
+              - totalCashoutAmount
+              - totalDonationsAmount
+              - userReachedEarningsToShare
+            properties:
+              totalEarningsAmount:
+                type: string
+                description: "Total earnings amount"
+              totalCashoutAmount:
+                type: string
+                description: "Total cashout amount"
+              totalDonationsAmount:
+                type: string
+                description: "Total cashout amount"
+              userReachedEarningsToShare:
+                type: boolean
+                description: "Flag, to determine show earnings share pop-up or not"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/cashout/last-successful-transaction:
+    get:
+      description: "Get user last successful cashout transaction"
+      tags:
+        - Android
+        - CASHOUT
+      operationId: "getLastSuccessfulTransaction"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Last successful cashout transaction"
+          schema:
+            type: object
+            required:
+              - name
+              - address
+              - email
+              - provider
+            properties:
+              name:
+                type: string
+                description: "User name"
+              address:
+                type: string
+                description: "User address"
+              email:
+                type: string
+                description: "User email"
+              provider:
+                description: "Cashout provider"
+                $ref: '#/definitions/CASHOUT_PROVIDER'
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/cashout/videoAdFinished:
+    post:
+      description: "Video ad finished after cashout event"
+      tags:
+        - Android
+        - TRACKING
+      operationId: "videoAdFinished"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: isSuccessful
+          in: query
+          description: "Was the video ad successful or not"
+          type: boolean
+          required: true
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/cashout/initiated:
+    post:
+      description: "Track if user initiated cashout"
+      tags:
+        - Android
+        - TRACKING
+      operationId: "trackCashoutInitiated"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/payments:
+    get:
+      description: "Get list of user's cash outs (rewards)"
+      tags:
+        - Android
+        - PAYMENTS
+      operationId: "getPayments"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: limit
+          in: query
+          description: "Page size"
+          default: 10
+          type: integer
+          required: false
+        - name: page
+          in: query
+          description: "Page number"
+          default: 0
+          type: integer
+          required: false
+      responses:
+        200:
+          description: "Rewards list"
+          schema:
+            type: object
+            required:
+              - payments
+              - providers
+            properties:
+              payments:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - cashoutTransactionId
+                    - createdAt
+                    - userId
+                    - provider
+                    - providerIconUrl
+                    - amount
+                    - amountString
+                    - recipientName
+                    - recipientEmail
+                    - status
+                  properties:
+                    cashoutTransactionId:
+                      type: string
+                      format: uuid
+                      description: "Cashout transaction identifier"
+                    createdAt:
+                      type: string
+                      format: date-time
+                      description: "Payment timestamp"
+                    userId:
+                      type: string
+                      format: uuid
+                      description: "User identifier"
+                    provider:
+                      type: string
+                      description: "Payment provider. One of [paypal|amazon|google_play|target|best_buy|walmart|burger_king|walmart|burger_king|reward_link|doctors_without_borders|clean_air_task_force|the_hunger_project]"
+                    providerIconUrl:
+                      type: string
+                      format: url
+                      description: "URL to provider icon"
+                    amount:
+                      type: number
+                      description: "Payment amount"
+                    operationalWithholdAmount:
+                      type: number
+                      description: "Withhold amount"
+                    amountString:
+                      type: string
+                      description: "Formatted payment amount"
+                    recipientName:
+                      type: string
+                      description: "Name that was used for cashout demand"
+                    recipientEmail:
+                      type: string
+                      description: "Email that was used for cashout demand"
+                    status:
+                      type: string
+                      description: "Payment status. One of [INITIATED|PENDING|UNCLAIMED|ON_HOLD|COMPLETED|REJECTED]"
+                    paymentExternalTransactionId:
+                      type: string
+                      description: "ID of payment on payment provider side"
+                    claim:
+                      type: string
+                      description: "Reward claim"
+                    claimLabel:
+                      type: string
+                      description: "Reward claim label. For example: link or code"
+                    redeemInstructions:
+                      type: string
+                      description: "Instruction about reward claim procedure"
+              providers:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - provider
+                    - iconUrl
+                  properties:
+                    provider:
+                      type: string
+                      description: "Payment provider. One of [paypal|amazon|google_play|target|best_buy|walmart|burger_king|walmart|burger_king|reward_link|doctors_without_borders|clean_air_task_force|the_hunger_project]"
+                    iconUrl:
+                      type: string
+                      description: "Provider icon image URL"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/payments/{cashoutTransactionId}:
+    get:
+      description: "Get detailed information about payment"
+      tags:
+        - Android
+        - PAYMENTS
+      operationId: "getPaymentDetails"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: cashoutTransactionId
+          in: path
+          description: "Cashout transaction identifier"
+          type: string
+          format: uuid
+          required: true
+      responses:
+        200:
+          description: "Detailed payment info"
+          schema:
+            type: object
+            required:
+              - cashoutTransactionId
+              - createdAt
+              - userId
+              - provider
+              - providerIconUrl
+              - amount
+              - recipientName
+              - recipientEmail
+              - status
+              - statusText
+            properties:
+              cashoutTransactionId:
+                type: string
+                format: uuid
+                description: "Cashout transaction identifier"
+              createdAt:
+                type: string
+                format: date-time
+                description: "Payment timestamp"
+              userId:
+                type: string
+                format: uuid
+                description: "User identifier"
+              provider:
+                type: string
+                description: "Payment provider. One of [paypal|amazon|google_play|target|best_buy|walmart|burger_king|walmart|burger_king|reward_link|doctors_without_borders|clean_air_task_force|the_hunger_project]"
+              providerIconUrl:
+                type: string
+                format: url
+                description: "URL to provider icon"
+              amount:
+                type: number
+                description: "Payment amount"
+              recipientName:
+                type: string
+                description: "Name that was used for cashout demand"
+              recipientEmail:
+                type: string
+                description: "Email that was used for cashout demand"
+              status:
+                type: string
+                description: "Payment status. One of [INITIATED|PENDING|UNCLAIMED|ONHOLD|COMPLETED|REJECTED]"
+              statusText:
+                type: string
+                description: "User friendly status text"
+              paymentExternalTransactionId:
+                type: string
+                description: "ID of payment on payment provider side"
+              claim:
+                type: string
+                description: "Reward claim"
+              claimLabel:
+                type: string
+                description: "Reward claim label. For example: link or code"
+              claimCaption:
+                type: string
+                description: "Reward claim caption"
+              redeemInstructions:
+                type: string
+                description: "Instruction about reward claim procedure"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/payments/{paymentProvider}/{cashoutTransactionId}/resend:
+    post:
+      description: "Resend reward email for payment providers that support it"
+      tags:
+        - Android
+        - PAYMENTS
+      operationId: "resendEmail"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: paymentProvider
+          in: path
+          description: "payment provider identifier"
+          type: string
+          required: true
+        - name: cashoutTransactionId
+          in: path
+          description: "Cashout transaction identifier"
+          type: string
+          format: uuid
+          required: true
+      responses:
+        200:
+          description: "Operation executed successfully or not"
+          schema:
+            type: object
+            required:
+              - success
+            properties:
+              success:
+                type: boolean
+                description: "Operation executed successfully or not"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/experimentVariations:
+    get:
+      description: "Get experiment variations assigned to user"
+      tags:
+        - Android
+        - TO_DELETE
+      operationId: "getExperimentVariations"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Ok"
+          schema:
+            type: array
+            items:
+              type: object
+              required:
+                - id
+                - key
+                - experimentKey
+              properties:
+                id:
+                  type: string
+                  description: "Variation identifier"
+                key:
+                  type: string
+                  description: "Variation key"
+                experimentKey:
+                  type: string
+                  description: "Experiment key"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/experimentVariations/{variationId}/activation:
+    post:
+      description: "Activate experiment variation"
+      tags:
+        - Android
+        - TO_DELETE
+      operationId: "activateExperimentVariation"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: variationId
+          in: path
+          description: "Experiment variation identifier"
+          type: integer
+          required: true
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/top-running-bar:
+    get:
+      description: "Get top running bar configuration for user."
+      tags:
+        - Android
+        - TRACKING
+      operationId: "topRunningBarConfiguration"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Ok"
+          schema:
+            type: object
+            required:
+              - text
+              - textColor
+              - backgroundColor
+            properties:
+              text:
+                type: string
+                description: "Text"
+              textColor:
+                type: string
+                description: "Text color"
+              backgroundColor:
+                type: string
+                description: "Background color"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        404:
+          description: "No bar configuration for user"
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/user-notifications-state:
+    post:
+      description: "Save user notifications status"
+      tags:
+        - Android
+        - TRACKING
+      operationId: "postUserNotificationsStatus"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "User notifications status"
+          schema:
+            type: object
+            required:
+              - areEnabled
+            properties:
+              areEnabled:
+                type: boolean
+                description: "Are notifications enabled"
+      responses:
+        200:
+          description: "OK"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        404:
+          description: "Not found!"
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/survey/{surveyId}/config:
+    get:
+      description: "Get survey config for specified survey"
+      tags:
+        - Android
+        - FEEDBACK
+      operationId: "getUserSurveyConfig"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: surveyId
+          in: path
+          description: "Survey identifier"
+          type: string
+          required: true
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                description: "Dialog type"
+              title:
+                type: string
+                description: "Survey title"
+              subtitle:
+                type: string
+                description: "Survey sub-title"
+              image:
+                type: string
+                description: "Survey image"
+              options:
+                type: array
+                description: "array with possible options"
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      description: "Option type, e.g. happy, neutral, unhappy"
+                    title:
+                      type: string
+                      description: "Option title"
+                    subOptions:
+                      type: array
+                      description: "array with possible sub-options"
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: "Id of sub-option"
+                          text:
+                            type: string
+                            description: "Translated text of sub-option"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        404:
+          description: "No survey for specified survey identifier."
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/survey/{surveyId}/response:
+    post:
+      description: "Save user survey answers"
+      tags:
+        - Android
+        - FEEDBACK
+      operationId: "postUserSurveyResponse"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: surveyId
+          in: path
+          description: "Survey identifier"
+          type: string
+          required: true
+      responses:
+        200:
+          description: "OK"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  # Examination
+  /playtime/users/examination:
+    get:
+      description: "Get server nonce for SafetyNet request"
+      tags:
+        - Android
+        - ONBOARDING
+      operationId: "getExaminationNonce"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - name: userId
+          in: query
+          description: "User identifier"
+          type: string
+          format: uuid
+          required: true
+      responses:
+        200:
+          description: "Examination data"
+          schema:
+            type: object
+            required:
+              - nonce
+            properties:
+              nonce:
+                type: string
+                description: "Nonce value"
+    post:
+      description: "Examine device attestation statement"
+      tags:
+        - Android
+        - ONBOARDING
+      operationId: "examineDeviceAttestationStatement"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - name: userId
+          in: query
+          description: "User identifier"
+          type: string
+          format: uuid
+          required: true
+        - name: request
+          in: body
+          description: "Device Attestation Statement as JWT"
+          schema:
+            type: object
+            required:
+              - jwt
+            properties:
+              jwt:
+                type: string
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  # For external apps
+  /playtime/users/adUnitIdsByGoogleAdId:
+    get:
+      description: "Get user's ad unit ids by Google Ad Id and package id"
+      tags:
+        - Android
+        - GAMES
+      operationId: "getAdUnitIdsByGoogleAdId"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - name: packageId
+          in: query
+          description: "Package identifier"
+          type: string
+          required: true
+        - name: googleAdId
+          in: query
+          description: "Google Ad Id"
+          type: string
+          format: uuid
+          required: true
+      responses:
+        200:
+          description: "Ad unit setup"
+          schema:
+            type: object
+            required:
+              - banner_ad_unit_id
+              - rewarded_ad_unit_id
+              - interstitial_ad_unit_id
+            properties:
+              banner_ad_unit_id:
+                type: string
+              rewarded_ad_unit_id:
+                type: string
+              interstitial_ad_unit_id:
+                type: string
+        404:
+          description: "Gaid not found"
+  /playtime/translations:
+    get:
+      description: "translations for our app"
+      tags:
+        - Android
+        - GENERIC
+      operationId: "translations"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - name: language
+          in: query
+          description: "User language"
+          type: string
+          required: true
+        - name: languageTag
+          in: query
+          description: "User language tag"
+          type: string
+          required: false
+      responses:
+        200:
+          description: "Translations api dto"
+          schema:
+            type: object
+            properties:
+              language:
+                type: string
+                description: "user language"
+              languageTag:
+                type: string
+                description: "User language tag"
+              translations:
+                type: object
+                description: "map of translations"
+  /playtime/c/s:
+    get:
+      description: "Do sanity check for user"
+      tags:
+        - Android
+        - GENERIC
+      operationId: "sanityCheck"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - name: userId
+          in: query
+          description: "User identifier"
+          type: string
+          format: uuid
+          required: true
+      responses:
+        200:
+          description: "Sanity check result"
+          schema:
+            type: object
+            properties:
+              value:
+                type: string
+                description: "Sanity check result. One of [isSane|isUsingVpn|isUnsupportedCountry]"
+        404:
+          description: "User not found"
+  #System
+  /playtime/app/config:
+    get:
+      description: "App configuration"
+      tags:
+        - Android
+        - TO_DELETE
+      operationId: "getAppConfig"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - name: countryCode
+          in: query
+          description: "Country code"
+          type: string
+          required: false
+      responses:
+        200:
+          description: "App config"
+          schema:
+            type: object
+            required:
+              - mainBalanceLabel
+              - mainCoinGoalLabel
+            properties:
+              mainBalanceLabel:
+                type: string
+                description: "Label for min balance text"
+              mainCoinGoalLabel:
+                type: string
+                description: "Label for min balance text"
+              termsOfService:
+                type: object
+                description: "Label for min balance text"
+                required:
+                  - highlight
+                  - content
+                  - withdrawConsent
+                properties:
+                  highlight:
+                    type: string
+                    description: "GDPR highlight text"
+                  content:
+                    type: string
+                    description: "GDPR content text"
+                  withdrawConsent:
+                    type: string
+                    description: "GDPR withdraw consent text"
+  /playtime/system/current-time:
+    get:
+      description: "Returns current time"
+      tags:
+        - Android
+        - GENERIC
+      operationId: "getCurrentTime"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+      responses:
+        200:
+          description: "Current type"
+          schema:
+            type: string
+            format: date-time
+  # iOS section
+  /playtime/ios/news:
+    get:
+      description: "Get JustPlay news"
+      tags:
+        - iOS
+        - GENERIC
+      operationId: "ios_getNews"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+      responses:
+        200:
+          description: "Success"
+          schema:
+            type: object
+            required:
+              - news
+            properties:
+              news:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - title
+                    - text
+                    - imageUrl
+                  properties:
+                    title:
+                      type: string
+                      description: "News item title"
+                    text:
+                      type: string
+                      description: "News item text"
+                    imageUrl:
+                      type: string
+                      description: "News item image url"
+                    detailedDescription:
+                      type: string
+                      description: "Detailed description"
+                    detailedImageUrl:
+                      type: string
+                      description: "Detailed image url"
+                    link:
+                      type: string
+                      description: "Some news related link"
+                    featureSurveyId:
+                      type: string
+                      description: "Survey id for news aka survey"
+                    game:
+                      type: object
+                      required:
+                        - appstoreId
+                        - bundleId
+                        - installButtonText
+                        - appScheme
+                      properties:
+                        appstoreId:
+                          type: string
+                          description: "appstoreId"
+                        bundleId:
+                          type: string
+                          description: "Bundle ID"
+                        installButtonText:
+                          type: string
+                          description: "Text for install button"
+                        appScheme:
+                          type: string
+                          description: "appScheme"
+                        ppid:
+                          type: string
+                          description: "Custom install page ID"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/translations:
+    get:
+      description: "Get translations for iOS app"
+      tags:
+        - iOS
+        - GENERIC
+      operationId: "ios_getTranslations"
+      parameters:
+        - name: languageTag
+          in: query
+          description: "User's language tag"
+          type: string
+          required: true
+      responses:
+        200:
+          description: "Translations api dto"
+          schema:
+            type: object
+            properties:
+              language:
+                type: string
+                description: "User's language"
+              languageTag:
+                type: string
+                description: "User's language tag"
+              translations:
+                type: object
+                description: "map of translations"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users:
+    post:
+      description: "Create a JustPlay user"
+      tags:
+        - iOS
+        - ONBOARDING
+      operationId: "ios_createUser"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - name: request
+          in: body
+          description: "Request for user creation"
+          schema:
+            type: object
+            properties:
+              deviceLocale:
+                type: string
+                description: "Device locale"
+              timeZone:
+                type: string
+                description: "Time zone (example: Europe/Berlin)"
+              jailBreak:
+                type: boolean
+                description: "True if device jailbreak detected"
+      responses:
+        200:
+          description: "Success"
+          schema:
+            type: object
+            required:
+              - userId
+              - market
+              - useGdpr
+            properties:
+              userId:
+                type: string
+                format: uuid
+              market:
+                type: string
+                description: "JP market"
+              useGdpr:
+                type: boolean
+                description: "Is GDPR policy applies to user"
+              deviceAttestationAtUserCreation:
+                type: boolean
+                description: "Whether device attestation should be initiated on user creation"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/online:
+    get:
+      description: "Get online users count"
+      tags:
+        - iOS
+        - TRACKING
+      operationId: "ios_getOnlineUsers"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+      responses:
+        200:
+          description: "Online users count"
+          schema:
+            type: object
+            required:
+              - online
+            properties:
+              online:
+                type: integer
+                description: "Online users count"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}:
+    get:
+      description: "Get user data"
+      tags:
+        - iOS
+        - GENERIC
+      operationId: "ios_getUserData"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "iOS user data"
+          schema:
+            type: object
+            required:
+              - userId
+              - coins
+              - cashoutAvailable
+              - useAmplitudeAnalytics
+              - timestamp
+            properties:
+              userId:
+                type: string
+                format: uuid
+                description: "User identifier"
+              coins:
+                type: integer
+                description: "Goal coins (previously - coins visible on main screen)"
+              coinsBalance:
+                type: integer
+                format: int64
+                description: "Coins visible on main screen as main current coins balance"
+              coinGoal:
+                type: integer
+                description: "Coin goal for current cashout period"
+              gameGoal:
+                $ref: '#/definitions/GAME_GOAL'
+              cashoutAvailable:
+                type: boolean
+                description: "Is cashout available currently"
+              cashoutAmount:
+                type: string
+                description: "Available earnings amount to cash out"
+              nextCashoutTimestamp:
+                type: string
+                format: date-time
+                description: "Current cashout period end (start of next cashout period) timestamp"
+              useAmplitudeAnalytics:
+                type: boolean
+                description: "Is send tracking data to Amplitude"
+              configuration:
+                type: object
+                properties:
+                  cashoutForm:
+                    type: string
+                    description: "Variation for cashout form"
+                  cashoutConfirmationMode:
+                    type: string
+                    description: "Variation for cashout confirmation mode"
+                  welcomeBonusCoins:
+                    type: integer
+                    description: "Coins amount for welcome coins bonus"
+                  newCashoutFlowEnabled:
+                    type: boolean
+                    description: "New cashout flow enabled"
+                  preGameScreenMode:
+                    type: string
+                    description: "Variations of pre game screens"
+                  allGamesButtonMode:
+                    type: string
+                    description: "Variations of showing or hiding games buttons"
+                  rewardsScreenMode:
+                    type: string
+                    description: "Rewards screen mode"
+                  topRunningBarMode:
+                    type: string
+                    description: "Top running bar mode"
+                  coinGoalSignsMode:
+                    type: string
+                    description: "Coin goal signs mode"
+                  moreGamesMode:
+                    type: string
+                    description: "More games mode"
+                  claimButton:
+                    type: string
+                    description: "Claim button mode"
+                  mainScreenTimer:
+                    type: string
+                    description: "Main screen show time mode"
+                  showAdAfterCashoutMode:
+                    type: string
+                    description: "Show ad after cashout mode"
+                  beEmailValidation:
+                    type: boolean
+                    description: "email validation by backend feature flag"
+                  interviewMode:
+                    type: string
+                    description: "Users interview mode"
+                  cashoutFormNameMode:
+                    type: string
+                    description: "Users cashout form name mode"
+                  gamesOnLowEarnings:
+                    type: boolean
+                    description: "Whether to suggest games to user when user does not cashout. [True|UNDEF]"
+                  highlightGamesMode:
+                    type: string
+                    description: "[<null>, popupAfterCancel]. Currently works as a switch whether to request highlighted games or not."
+                  paymentProviderSurvey:
+                    type: object
+                    description: "Payment provider survey"
+                    properties:
+                      mode:
+                        type: string
+                        enum:
+                          - "onClose"
+                          - "insideList"
+                      type:
+                        type: string
+                        enum:
+                          - "specificProvider"
+                          - "categoriesProviders"
+                  cashoutProgressBarMode:
+                    type: string
+                    description: "[<null>, linearProgressBar, progressBarWithCircles, dashedLineProgressBar]. Cashout progress bar mode"
+                  cashoutCoins:
+                    $ref: '#/definitions/CASHOUT_COINS_API_DTO'
+              timestamp:
+                type: string
+                format: date-time
+                description: "Current server timestamp"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/claim-goal-coins:
+    post:
+      description: "Claim bonus coins from Game Coin Goals (iOS)"
+      tags:
+        - iOS
+        - TRACKING
+      operationId: "iosClaimGoalCoins"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/leaderboard:
+    post:
+      description: "Get current leaderboard (iOS)"
+      tags:
+        - iOS
+        - ENGAGEMENT
+      operationId: "iosGetLeaderboard"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          schema:
+            type: object
+            properties:
+              bundleId:
+                type: string
+      responses:
+        200:
+          description: 'Leaderboard'
+          schema:
+            type: object
+            properties:
+              board:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    userName:
+                      type: string
+                    score:
+                      type: number
+                    position:
+                      type: integer
+                    isCurrentUser:
+                      type: boolean
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/feedback/news:
+    post:
+      description: "News feedback"
+      tags:
+        - iOS
+        - FEEDBACK
+      operationId: "iosFeedbackNews"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          schema:
+            type: object
+            properties:
+              featureSurveyId:
+                type: string
+              isLiked:
+                type: boolean
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/feedback/propose-game-feature:
+    post:
+      description: "Propose game feature feedback"
+      tags:
+        - iOS
+        - FEEDBACK
+      operationId: "iosFeedbackProposeGameFeature"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          schema:
+            type: object
+            properties:
+              bundleId:
+                type: string
+              proposalText:
+                type: string
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/feedback/game:
+    post:
+      description: "Game feedback"
+      tags:
+        - iOS
+        - FEEDBACK
+      operationId: "iosFeedbackGame"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          schema:
+            type: object
+            properties:
+              bundleId:
+                type: string
+              isLiked:
+                type: boolean
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/provider-survey:
+    post:
+      description: "Submit provider survey"
+      tags:
+        - iOS
+        - FEEDBACK
+      operationId: "ios_submitProviderSurvey"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Provider survey data"
+          schema:
+            type: object
+            required:
+              - userChoice
+            properties:
+              userChoice:
+                type: array
+                items:
+                  type: string
+                description: "Providers user have chosen"
+              ownAnswer:
+                type: string
+                description: "Additional answer by user"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/interview:
+    get:
+      description: "Get user interview data"
+      tags:
+        - iOS
+        - GENERIC
+      operationId: "ios_getInterviewData"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Ok"
+          schema:
+            type: object
+            properties:
+              url:
+                type: string
+                description: "Link to the interview"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+    post:
+      description: "Save user's response"
+      tags:
+        - iOS
+        - GENERIC
+      operationId: "ios_saveInterviewData"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          schema:
+            type: object
+            required:
+              - decision
+            properties:
+              decision:
+                type: string
+                description: "User's response"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/idfa:
+    post:
+      description: "Associate IDFA with user"
+      tags:
+        - iOS
+        - ONBOARDING
+      operationId: "ios_setIdfa"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for IDFA assigning"
+          schema:
+            type: object
+            required:
+              - idfa
+            properties:
+              idfa:
+                type: string
+                format: uuid
+                description: "IDFA"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/idfv:
+    post:
+      description: "Associate IDFV with user"
+      tags:
+        - iOS
+        - ONBOARDING
+      operationId: "ios_setIdfv"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for IDFV assigning"
+          schema:
+            type: object
+            required:
+              - idfv
+            properties:
+              idfv:
+                type: string
+                format: uuid
+                description: "IDFV"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/deviceToken:
+    post:
+      description: "Associate device token with user"
+      tags:
+        - iOS
+        - ONBOARDING
+      operationId: "ios_setDeviceToken"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for device token assigning"
+          schema:
+            type: object
+            required:
+              - deviceToken
+            properties:
+              deviceToken:
+                type: string
+                description: "Device token"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/adjustId:
+    post:
+      description: "Associate Adjust Id with user"
+      tags:
+        - iOS
+        - ONBOARDING
+      operationId: "ios_setAdjustId"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for Adjust id assigning"
+          schema:
+            type: object
+            required:
+              - adjustId
+            properties:
+              adjustId:
+                type: string
+                description: "Adjust id"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/firebaseAppInstanceId:
+    post:
+      description: "Associate firebase app instance id with user"
+      tags:
+        - iOS
+        - ONBOARDING
+      operationId: "iosSetFirebaseInstanceId"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for firebase app instance id assigning"
+          schema:
+            type: object
+            required:
+              - firebaseAppInstanceId
+            properties:
+              firebaseAppInstanceId:
+                type: string
+                description: "Firebase app instance id"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/games/played:
+    get:
+      description: "Get user games already played"
+      tags:
+        - iOS
+        - ENGAGEMENT
+      operationId: "ios_getPlayedGames"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Games that were already played"
+          schema:
+            type: object
+            required:
+              - games
+            properties:
+              games:
+                type: array
+                description: "List of games"
+                items:
+                  $ref: '#/definitions/IOS_GAME'
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/games/new:
+    get:
+      description: "Get user games never played"
+      tags:
+        - iOS
+        - ENGAGEMENT
+      operationId: "ios_getNewGames"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Games that were never played"
+          schema:
+            type: object
+            required:
+              - games
+            properties:
+              games:
+                type: array
+                description: "List of games"
+                items:
+                  $ref: '#/definitions/IOS_GAME'
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/games/highlighted:
+    get:
+      description: "Get user games for highlighting when no cashouts"
+      tags:
+        - iOS
+        - ENGAGEMENT
+      operationId: "ios_getHighlightedGames"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Highlighted games"
+          schema:
+            type: object
+            required:
+              - games
+            properties:
+              games:
+                type: array
+                description: "List of games"
+                items:
+                  $ref: '#/definitions/IOS_GAME'
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/games/all:
+    get:
+      description: "Get user all games"
+      tags:
+        - iOS
+        - ENGAGEMENT
+      operationId: "ios_getAllGames"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Just all available ios games"
+          schema:
+            type: object
+            required:
+              - games
+            properties:
+              games:
+                type: array
+                description: "List of games"
+                items:
+                  $ref: '#/definitions/IOS_GAME'
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/verification/initiate:
+    post:
+      description: "Initiate user verification session"
+      tags:
+        - iOS
+        - VERIFICATION
+      operationId: "ios_initiateVerification"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for verification initiation"
+          schema:
+            type: object
+            required:
+              - provider
+              - email
+            properties:
+              provider:
+                type: string
+                description: "Payment provider. One of [paypal|amazon|google_play|target|best_buy|walmart|burger_king|walmart|burger_king|reward_link|doctors_without_borders|clean_air_task_force|the_hunger_project]"
+              email:
+                type: string
+                description: "User's email"
+      responses:
+        200:
+          description: "User data"
+          schema:
+            type: object
+            required:
+              - sessionId
+              - userId
+              - expiredAt
+              - verification
+            properties:
+              sessionId:
+                type: string
+                format: uuid
+                description: "Identifier of verification session"
+              userId:
+                type: string
+                format: uuid
+                description: "User identifier"
+              expiredAt:
+                type: string
+                format: date-time
+                description: "Session expiration timestamp"
+              verification:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - type
+                    - status
+                    - order
+                  properties:
+                    type:
+                      type: string
+                      description: "Verification type [FACE|PHONE]"
+                    status:
+                      type: string
+                      description: "Verification status [REQUIRED|VERIFIED|ALLOWED_ONCE]"
+                    order:
+                      type: integer
+                      description: "Order of verification step"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/verification/verify-face:
+    post:
+      description: "Verify user's face"
+      tags:
+        - iOS
+        - VERIFICATION
+      operationId: "ios_verifyFace"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/VERIFICATION_SESSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for face verification"
+          schema:
+            type: object
+            required:
+              - faceScan
+              - auditTrailImage
+              - lowQualityAuditTrailImage
+            properties:
+              faceScan:
+                type: string
+                description: "Face scan result"
+              auditTrailImage:
+                type: string
+                description: "Face image for audit purposes"
+              lowQualityAuditTrailImage:
+                type: string
+                description: "Face image for audit purposes (low quality)"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/verification/examination:
+    get:
+      description: "Get server Challenge for IOS DeviceCheck request"
+      tags:
+        - iOS
+        - VERIFICATION
+      operationId: "verificationGetIosExaminationChallenge"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/VERIFICATION_SESSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Examination data"
+          schema:
+            type: object
+            required:
+              - challenge
+            properties:
+              challenge:
+                type: string
+                description: "Challenge value"
+    post:
+      description: "Examine IOS device attestation statement"
+      tags:
+        - iOS
+        - VERIFICATION
+      operationId: "verificationIosExamineDeviceAttestationStatement"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/VERIFICATION_SESSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - $ref: '#/parameters/IOS_APP_ENV_HEADER'
+        - name: request
+          in: body
+          description: "IOS Device Attestation Statement"
+          schema:
+            type: object
+            required:
+              - attestationObjectBase64
+              - keyIdBase64
+              - challenge
+            properties:
+              attestationObjectBase64:
+                type: string
+                description: "Apple DeviceCheck attestation response base64-encoded"
+              keyIdBase64:
+                type: string
+                description: "keyId of device base64-encoded"
+              challenge:
+                type: string
+                description: "Challenge value used to request attestation"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/verification/jailBreak:
+    post:
+      description: "iOS. Verify jailBreak usage"
+      tags:
+        - iOS
+        - VERIFICATION
+      operationId: "iosJailBreakVerification"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/VERIFICATION_SESSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "JailBreak verification request"
+          schema:
+            type: object
+            required:
+              - jailBreak
+            properties:
+              jailBreak:
+                type: boolean
+                description: "Is JailBreak usage detected"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/verification/location:
+    post:
+      description: "iOS. Verify GPS location"
+      tags:
+        - iOS
+        - VERIFICATION
+      operationId: "iosLocationVerification"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/VERIFICATION_SESSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Location verification request"
+          schema:
+            type: object
+            required:
+              - location
+            properties:
+              location:
+                type: string
+                description: "Country detected by GPS location"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/verification/validateEmail:
+    post:
+      description: "iOS. Validate email"
+      tags:
+        - iOS
+        - VERIFICATION
+      operationId: "iosEmailValidation"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Email validation request"
+          schema:
+            type: object
+            required:
+              - email
+            properties:
+              email:
+                type: string
+                description: "Email for validation"
+      responses:
+        200:
+          description: "Email validation result"
+          schema:
+            type: object
+            required:
+              - isEmailValid
+            properties:
+              isEmailValid:
+                type: boolean
+                description: "Is email valid"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/verification/validateUserHandle:
+    post:
+      description: "iOS. Validate Venmo User Handle"
+      tags:
+        - iOS
+        - VERIFICATION
+      operationId: "iosVenmoUserHandleValidation"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "User Handle validation request"
+          schema:
+            type: object
+            required:
+              - userHandle
+            properties:
+              userHandle:
+                type: string
+                description: "User Handle for validation"
+      responses:
+        200:
+          description: "User Handle validation result"
+          schema:
+            type: object
+            required:
+              - isUserHandleValid
+            properties:
+              isUserHandleValid:
+                type: boolean
+                description: "Is user handle valid"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/cashout:
+    get:
+      description: "Get user cashout data"
+      tags:
+        - iOS
+        - CASHOUT
+      operationId: "ios_getCashoutData"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Cashout data"
+          schema:
+            type: object
+            required:
+              - isEnabled
+              - headerText
+              - iconUrl
+              - nextCashoutTimestamp
+              - options
+              - disclaimer
+              - providersImageList
+            properties:
+              isEnabled:
+                type: boolean
+                description: "Is cashout enabled"
+              headerText:
+                type: string
+                description: "Header label text"
+              nextCashoutTimestamp:
+                type: string
+                format: date-time
+                description: "Next cashout time instant"
+              amountText:
+                type: string
+                description: "Formatted amount"
+              options:
+                type: array
+                description: "List of available cashout providers"
+                items:
+                  type: object
+                  required:
+                    - url
+                    - iconUrl
+                    - provider
+                    - donation
+                    - enabled
+                    - bonusEnabled
+                  properties:
+                    url:
+                      type: string
+                      description: "URL to provider website"
+                    videoUrl:
+                      type: string
+                      description: "URL to provider video"
+                    iconUrl:
+                      type: string
+                      description: "URL to provider icon"
+                    provider:
+                      type: string
+                      description: "Payment provider. One of [paypal|amazon|google_play|target|best_buy|walmart|burger_king|walmart|burger_king|reward_link|doctors_without_borders|clean_air_task_force|the_hunger_project]"
+                    donation:
+                      type: boolean
+                      description: "Is donation"
+                    disclaimer:
+                      type: string
+                      description: "Payment provider disclaimer"
+                    emailHint:
+                      type: string
+                      description: "Hint for email text input"
+                    minimumAmount:
+                      type: string
+                      description: "Minimal amount for cash out"
+                    maximumAmount:
+                      type: string
+                      description: "Maximum amount for cash out"
+                    enabled:
+                      type: boolean
+                      description: "Is cash out enabled"
+                    bonusEnabled:
+                      type: boolean
+                      description: "Is bonus cash out enabled"
+                    identifierType:
+                      type: string
+                      description: "One of [email|user_handle|phone_number]"
+                    identifierHint:
+                      type: string
+                      description: "Hint for identifierType text input"
+              disclaimer:
+                type: string
+                description: "Cashout disclaimer"
+              providersImageList:
+                type: array
+                items:
+                  type: string
+                  description: "Provider images URLs"
+              timestamp:
+                type: string
+                format: date-time
+                description: "Current server timestamp"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/cashout/demand:
+    post:
+      description: "Initiate cashout"
+      tags:
+        - iOS
+        - CASHOUT
+      operationId: "ios_initiateCashoutDemand"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/VERIFICATION_SESSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Request for cashout initiation"
+          schema:
+            type: object
+            required:
+              - provider
+              - name
+              - email
+              - isBonusRequest
+            properties:
+              provider:
+                type: string
+                description: "Payment provider. One of [paypal|amazon|google_play|target|best_buy|walmart|burger_king|walmart|burger_king|reward_link|doctors_without_borders|clean_air_task_force|the_hunger_project]"
+              name:
+                type: string
+                description: "User name"
+              address:
+                type: string
+                description: "User address"
+              email:
+                type: string
+                description: "User email"
+              isBonusRequest:
+                type: string
+                description: "Is bonus cash out (vs usual earnings cash out)"
+              providerIssuesMessage:
+                type: string
+                description: "Info message for user about ongoing issues"
+      responses:
+        200:
+          description: "Cashout data"
+          schema:
+            type: object
+            required:
+              - useRewards
+            properties:
+              useRewards:
+                type: boolean
+                description: "Show rewards icon. Deprecated (always true)"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/cashout/stats:
+    get:
+      description: "Get user cashout statistics"
+      tags:
+        - iOS
+        - CASHOUT
+      operationId: "ios_getCashoutStats"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Cashout statistics"
+          schema:
+            type: object
+            required:
+              - totalEarningsAmount
+              - totalCashoutAmount
+              - totalDonationsAmount
+              - userReachedEarningsToShare
+            properties:
+              totalEarningsAmount:
+                type: string
+                description: "Total earnings amount"
+              totalCashoutAmount:
+                type: string
+                description: "Total cashout amount"
+              totalDonationsAmount:
+                type: string
+                description: "Total cashout amount"
+              userReachedEarningsToShare:
+                type: boolean
+                description: "Flag, to determine show earnings share pop-up or not"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/cashout/last-successful-transaction:
+    get:
+      description: "Get user last successful cashout transaction"
+      tags:
+        - iOS
+        - CASHOUT
+      operationId: "iosGetLastSuccessfulTransaction"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Last successful cashout transaction"
+          schema:
+            type: object
+            required:
+              - name
+              - address
+              - email
+              - provider
+            properties:
+              name:
+                type: string
+                description: "User name"
+              address:
+                type: string
+                description: "User address"
+              email:
+                type: string
+                description: "User email"
+              provider:
+                description: "Cashout provider"
+                $ref: '#/definitions/CASHOUT_PROVIDER'
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/payments:
+    get:
+      description: "Get list of user's cash outs (rewards)"
+      tags:
+        - iOS
+        - PAYMENTS
+      operationId: "ios_getPayments"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: limit
+          in: query
+          description: "Page size"
+          default: 10
+          type: integer
+          required: false
+        - name: page
+          in: query
+          description: "Page number"
+          default: 0
+          type: integer
+          required: false
+      responses:
+        200:
+          description: "Rewards list"
+          schema:
+            type: object
+            required:
+              - payments
+              - providers
+            properties:
+              payments:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - cashoutTransactionId
+                    - createdAt
+                    - userId
+                    - provider
+                    - providerIconUrl
+                    - amount
+                    - amountString
+                    - recipientName
+                    - recipientEmail
+                    - status
+                  properties:
+                    cashoutTransactionId:
+                      type: string
+                      format: uuid
+                      description: "Cashout transaction identifier"
+                    createdAt:
+                      type: string
+                      format: date-time
+                      description: "Payment timestamp"
+                    userId:
+                      type: string
+                      format: uuid
+                      description: "User identifier"
+                    provider:
+                      type: string
+                      description: "Payment provider. One of [paypal|amazon|google_play|target|best_buy|walmart|burger_king|walmart|burger_king|reward_link|doctors_without_borders|clean_air_task_force|the_hunger_project]"
+                    providerIconUrl:
+                      type: string
+                      format: url
+                      description: "URL to provider icon"
+                    amount:
+                      type: number
+                      description: "Payment amount"
+                    operationalWithholdAmount:
+                      type: number
+                      description: "Withhold amount"
+                    amountString:
+                      type: string
+                      description: "Formatted payment amount"
+                    recipientName:
+                      type: string
+                      description: "Name that was used for cashout demand"
+                    recipientEmail:
+                      type: string
+                      description: "Email that was used for cashout demand"
+                    status:
+                      type: string
+                      description: "Payment status. One of [INITIATED|PENDING|UNCLAIMED|ON_HOLD|COMPLETED|REJECTED]"
+                    paymentExternalTransactionId:
+                      type: string
+                      description: "ID of payment on payment provider side"
+                    claim:
+                      type: string
+                      description: "Reward claim"
+                    claimLabel:
+                      type: string
+                      description: "Reward claim label. For example: link or code"
+                    redeemInstructions:
+                      type: string
+                      description: "Instruction about reward claim procedure"
+              providers:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - provider
+                    - iconUrl
+                  properties:
+                    provider:
+                      type: string
+                      description: "Payment provider. One of [paypal|amazon|google_play|target|best_buy|walmart|burger_king|walmart|burger_king|reward_link|doctors_without_borders|clean_air_task_force|the_hunger_project]"
+                    iconUrl:
+                      type: string
+                      description: "Provider icon image URL"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/payments/{cashoutTransactionId}:
+    get:
+      description: "Get detailed information about payment"
+      tags:
+        - iOS
+        - PAYMENTS
+      operationId: "ios_getPaymentDetails"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: cashoutTransactionId
+          in: path
+          description: "Cashout transaction identifier"
+          type: string
+          format: uuid
+          required: true
+      responses:
+        200:
+          description: "Detailed payment info"
+          schema:
+            type: object
+            required:
+              - cashoutTransactionId
+              - createdAt
+              - userId
+              - provider
+              - providerIconUrl
+              - amount
+              - recipientName
+              - recipientEmail
+              - status
+              - statusText
+            properties:
+              cashoutTransactionId:
+                type: string
+                format: uuid
+                description: "Cashout transaction identifier"
+              createdAt:
+                type: string
+                format: date-time
+                description: "Payment timestamp"
+              userId:
+                type: string
+                format: uuid
+                description: "User identifier"
+              provider:
+                type: string
+                description: "Payment provider. One of [paypal|amazon|google_play|target|best_buy|walmart|burger_king|walmart|burger_king|reward_link|doctors_without_borders|clean_air_task_force|the_hunger_project]"
+              providerIconUrl:
+                type: string
+                format: url
+                description: "URL to provider icon"
+              amount:
+                type: number
+                description: "Payment amount"
+              recipientName:
+                type: string
+                description: "Name that was used for cashout demand"
+              recipientEmail:
+                type: string
+                description: "Email that was used for cashout demand"
+              status:
+                type: string
+                description: "Payment status. One of [INITIATED|PENDING|UNCLAIMED|ONHOLD|COMPLETED|REJECTED]"
+              statusText:
+                type: string
+                description: "User friendly status text"
+              paymentExternalTransactionId:
+                type: string
+                description: "ID of payment on payment provider side"
+              claim:
+                type: string
+                description: "Reward claim"
+              claimLabel:
+                type: string
+                description: "Reward claim label. For example: link or code"
+              claimCaption:
+                type: string
+                description: "Reward claim caption"
+              redeemInstructions:
+                type: string
+                description: "Instruction about reward claim procedure"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  # ios Examination
+  /playtime/ios/users/{userId}/examination:
+    get:
+      description: "Get server Challenge for IOS DeviceCheck request"
+      tags:
+        - iOS
+        - ONBOARDING
+      operationId: "getIosExaminationChallenge"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+      responses:
+        200:
+          description: "Examination data"
+          schema:
+            type: object
+            required:
+              - challenge
+            properties:
+              challenge:
+                type: string
+                description: "Challenge value"
+    post:
+      description: "Examine IOS device attestation statement"
+      tags:
+        - iOS
+        - ONBOARDING
+      operationId: "iosExamineDeviceAttestationStatement"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - $ref: '#/parameters/IOS_APP_ENV_HEADER'
+        - name: request
+          in: body
+          description: "IOS Device Attestation Statement"
+          schema:
+            type: object
+            required:
+              - attestationObjectBase64
+              - keyIdBase64
+              - challenge
+            properties:
+              attestationObjectBase64:
+                type: string
+                description: "Apple DeviceCheck attestation response base64-encoded"
+              keyIdBase64:
+                type: string
+                description: "keyId of device base64-encoded"
+              challenge:
+                type: string
+                description: "Challenge value used to request attestation"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/top-running-bar:
+    get:
+      description: "Get top running bar configuration for user."
+      tags:
+        - iOS
+        - TRACKING
+      operationId: "iosTopRunningBarConfiguration"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Ok"
+          schema:
+            type: object
+            required:
+              - text
+              - textColor
+              - backgroundColor
+            properties:
+              text:
+                type: string
+                description: "Text"
+              textColor:
+                type: string
+                description: "Text color"
+              backgroundColor:
+                type: string
+                description: "Background color"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        404:
+          description: "No bar configuration for user"
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/adUnitIds:
+    get:
+      description: "Get ad units configuration for user."
+      tags:
+        - iOS
+        - GAMES
+      operationId: "iosAdUnitIds"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: packageId
+          in: query
+          description: "package id for requesting ad units"
+          type: string
+          required: true
+      responses:
+        200:
+          description: "Ok"
+          schema:
+            type: object
+            required:
+              - rewardedAdUnitId
+              - interstitialAdUnitId
+            properties:
+              rewardedAdUnitId:
+                type: string
+              interstitialAdUnitId:
+                type: string
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/achievements:
+    get:
+      description: "Get achievements for user."
+      tags:
+        - iOS
+        - ENGAGEMENT
+      operationId: "iosUserAchievements"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Ok"
+          schema:
+            type: object
+            required:
+              - achievements
+            properties:
+              achievements:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - id
+                    - icon
+                    - title
+                  properties:
+                    id:
+                      type: string
+                      description: "Unique achievement ID (as string)"
+                    title:
+                      type: string
+                      description: "Name of achievement"
+                    description:
+                      type: string
+                      description: "Details about achievement"
+                    icon:
+                      type: string
+                      description: "Url of icon for achievement"
+                    completedAt:
+                      type: integer
+                      format: int64
+                      description: "Datetime in unix seconds of achievement completion"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/user-notifications-state:
+    post:
+      description: "Save user notifications status"
+      tags:
+        - iOS
+        - TRACKING
+      operationId: "iosPostUserNotificationsStatus"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "User notifications status"
+          schema:
+            type: object
+            required:
+              - areEnabled
+            properties:
+              areEnabled:
+                type: boolean
+                description: "Are notifications enabled"
+      responses:
+        200:
+          description: "OK"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        404:
+          description: "Not found!"
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/consent:
+    post:
+      description: "Track user consent"
+      tags:
+        - iOS
+        - ENGAGEMENT
+      operationId: "iosSetConsentInfo"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Consent to analytics/ads"
+          schema:
+            type: object
+            required:
+              - hasConsentedToAnalytics
+              - hasConsentedToTargetedAdvertisement
+            properties:
+              hasConsentedToAnalytics:
+                type: boolean
+                description: "Consent to analytics"
+              hasConsentedToTargetedAdvertisement:
+                type: boolean
+                description: "Consent to ads"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/location/gdprState:
+    get:
+      description: "Is GDPR policy applies to user"
+      tags:
+        - Android
+        - GENERIC
+      operationId: "location_gdprState"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/GEO_LOCATION_HEADER'
+      responses:
+        200:
+          description: "GDPR state"
+          schema:
+            type: object
+            required:
+              - useGdpr
+            properties:
+              useGdpr:
+                type: boolean
+                description: "Is GDPR should be used for user"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/service/experiments:
+    get:
+      description: "Experiments for admin"
+      tags:
+        - Android
+        - TO_DELETE
+      operationId: "admin_experiments"
+      responses:
+        200:
+          description: "Experiments"
+          schema:
+            type: object
+            required:
+              - items
+            properties:
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/LIGHT_EXPERIMENT_DTO'
+  /playtime/service/experiments/{experimentKey}:
+    get:
+      description: "Experiment for admin"
+      tags:
+        - Android
+        - TO_DELETE
+      operationId: "admin_experiment"
+      parameters:
+        - in: path
+          name: experimentKey
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Experiment"
+          schema:
+            $ref: '#/definitions/FULL_EXPERIMENT_DTO'
+        404:
+          description: "Not found"
+responses:
+  4XX_REQUEST_ERROR:
+    description: "Request error. It can be either validation error or user state that prevents the operation"
+    schema:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          example: 12
+          description: "Error code according to registry https://docs.google.com/spreadsheets/d/1kJTLSnGHzo_W9YxYiqQhyUUo_olAVt6_Tm7IKQ97wGI/edit#gid=0"
+        message:
+          type: string
+          example: "There are no unclaimed earnings to cashout"
+          description: "Error description"
+  5XX_SERVER_ERROR:
+    description: "Server error. Request can be retried"
+parameters:
+  APP_VERSION_HEADER:
+    name: X-Playtime-AppVersion
+    in: header
+    description: "Android app version"
+    type: integer
+    required: true
+  IOS_APP_VERSION_HEADER:
+    name: X-iOS-AppVersion
+    in: header
+    description: "iOS app version"
+    type: integer
+    required: true
+  VERIFICATION_SESSION_HEADER:
+    name: X-VSession
+    in: header
+    description: "Verification session id"
+    type: string
+    required: true
+  DESIRED_APP_VERSION_HEADER:
+    name: X-Playtime-Desired-AppVersion
+    in: header
+    description: "Android app version"
+    type: integer
+    required: true
+  MARKET_HEADER:
+    name: X-Playtime-Market
+    in: header
+    description: "Market (for routing to backend instance)"
+    type: string
+    required: false
+  USER_ID_PATH:
+    name: userId
+    in: path
+    description: "User identifier"
+    type: string
+    format: uuid
+    required: true
+  GEO_LOCATION_HEADER:
+    name: X-Client-Geo-Location
+    in: header
+    description: "User location"
+    type: string
+    required: true
+  IOS_APP_ENV_HEADER:
+    name: X-iOS-Env
+    in: header
+    description: "iOS app environment"
+    type: string
+    required: true
+definitions:
+  GAME_GOAL:
+    type: object
+    description: "This object should have either 'currentGoal' or 'nextGoalTimestamp' field available once at a time"
+    properties:
+      currentGoal:
+        type: object
+        required:
+          - currentValue
+          - goalValue
+        properties:
+          currentValue:
+            type: integer
+          goalValue:
+            type: integer
+          gameInfo:
+            type: object
+            description: "If this field is null - then goal is not connected to any game, thus Generic"
+            required:
+              - applicationId
+              - gameUrl
+              - iconUrl
+              - title
+            properties:
+              title:
+                type: string
+              iconUrl:
+                type: string
+              gameUrl:
+                type: string
+              applicationId:
+                type: string
+      nextGoalTimestamp:
+        type: integer
+        format: int64
+        description: "Next goal timestamp in UNIX time"
+  CREATE_USER_RESPONSE:
+    description: 'Android`s response to create user request'
+    type: object
+    required:
+      - userId
+      - market
+      - userConfig
+      - deviceAttestationAtUserCreation
+      - showPointingArrow
+      - welcomeBonusPopupAvailable
+      - showGoalMarkers
+      - useAnimationForTimer
+      - showBoosterGoal
+      - showTopRunningBar
+      - useGdpr
+    properties:
+      userId:
+        type: string
+        format: uuid
+      market:
+        type: string
+        description: "JP market"
+      deviceAttestationAtUserCreation:
+        type: boolean
+        description: "Should device attestation be triggered by the app right after user creation"
+      showPointingArrow:
+        type: boolean
+        description: "Pointing arrow enhancement"
+      welcomeBonusPopupAvailable:
+        type: boolean
+        description: "Welcome coins were added, we should add additional popup to congrats the user"
+      showGoalMarkers:
+        type: boolean
+        description: "DEPRECATED. Display goal markers on coin goal bar"
+      useAnimationForTimer:
+        type: boolean
+        description: "Use animation for cashout timer"
+      showBoosterGoal:
+        type: boolean
+        description: "Show booster goal"
+      showTopRunningBar:
+        type: boolean
+        description: "Show top running bar"
+      useGdpr:
+        type: boolean
+        description: "Is GDPR policy applies to user"
+      userConfig:
+        type: object
+        required:
+          - experimentVariations
+        properties:
+          experimentVariations:
+            type: array
+            items:
+              type: object
+              required:
+                - id
+                - experimentKey
+                - key
+              properties:
+                id:
+                  type: string
+                  description: "Internal unique variation assignment id"
+                experimentKey:
+                  type: string
+                  description: "Name of the experiment"
+                key:
+                  type: string
+                  description: "Name of the variation"
+  CREATE_USER_REQUEST:
+    description: 'Android`s request to create user'
+    type: object
+    properties:
+      networkCountry:
+        type: string
+        description: "Mobile network country"
+      networkOperatorName:
+        type: string
+        description: "Mobile network operator name"
+      simCountry:
+        type: string
+        description: "Sim country"
+      simOperatorName:
+        type: string
+        description: "Sim operator name"
+      deviceLocale:
+        type: string
+        description: "Device locale"
+      installedFromStore:
+        type: boolean
+        description: "Is game installed from store (app driven)"
+      userPublicKey:
+        type: string
+        description: "Public key for app-backend interactions"
+      signatureText:
+        type: string
+        description: "Signature of user creation request"
+      simInfoList:
+        type: array
+        items:
+          type: object
+          required:
+            - networkCountry
+            - networkOperatorName
+            - simCountry
+            - simOperatorName
+            - simSlotIndex
+          properties:
+            networkCountry:
+              type: string
+              description: "Mobile network country"
+            networkOperatorName:
+              type: string
+              description: "Mobile network operator name"
+            simCountry:
+              type: string
+              description: "Sim country"
+            simOperatorName:
+              type: string
+              description: "Sim operator name"
+            simSlotIndex:
+              type: integer
+              description: "Sim slot index"
+  CASHOUT_PROVIDER:
+    description: "Cashout provider"
+    type: object
+    required:
+      - url
+      - iconUrl
+      - provider
+      - donation
+      - enabled
+      - bonusEnabled
+    properties:
+      displayName:
+        type: string
+        description: "Provider display name"
+      url:
+        type: string
+        description: "URL to provider website"
+      videoUrl:
+        type: string
+        description: "URL to provider video"
+      iconUrl:
+        type: string
+        description: "URL to provider icon"
+      text:
+        type: string
+        description: "Provider description"
+      shortText:
+        type: string
+        description: "Sort provider description"
+      provider:
+        type: string
+        description: "Payment provider name"
+      donation:
+        type: boolean
+        description: "Is donation"
+      disclaimer:
+        type: string
+        description: "Payment provider disclaimer"
+      emailHint:
+        type: string
+        description: "Hint for email text input"
+      minimumAmount:
+        type: string
+        description: "Minimal amount for cash out"
+      maximumAmount:
+        type: string
+        description: "Maximum amount for cash out"
+      enabled:
+        type: boolean
+        description: "Is cash out enabled"
+      bonusEnabled:
+        type: boolean
+        description: "Is bonus cash out enabled"
+      identifierType:
+        type: string
+        description: "One of [email|user_handle|phone_number]"
+      identifierHint:
+        type: string
+        description: "Hint for identifierType input"
+  IOS_GAME:
+    type: object
+    required:
+      - id
+      - applicationId
+      - name
+      - description
+      - iconFilename
+      - imageFilename
+      - infoTextInstall
+      - iosApplicationId
+      - iosGameUrl
+      - showBadge
+    properties:
+      id:
+        type: integer
+        description: "Game unique id"
+      applicationId:
+        type: string
+        description: "Game application id in app store"
+      name:
+        type: string
+        description: "Game name"
+      description:
+        type: string
+        description: "Game description"
+      iconFilename:
+        type: string
+        description: "URL of game icon"
+      imageFilename:
+        type: string
+        description: "URL of game image"
+      infoTextInstall:
+        type: string
+        description: "Text on install preview"
+      iosApplicationId:
+        type: string
+        description: "id on App Store"
+      iosGameUrl:
+        type: string
+        description: "URL to launch application in iOS"
+      preGameScreen:
+        type: object
+        properties:
+          title:
+            type: string
+            description: "Title for pre screen"
+          description:
+            type: string
+            description: "Description for pre screen"
+          tags:
+            type: array
+            items:
+              type: string
+              description: "Tags for short-describing game"
+          images:
+            type: array
+            items:
+              type: string
+              description: "Images of game for pre screen"
+      showBadge:
+        type: boolean
+        description: "Flag to show Most Coins badge"
+      ppid:
+        type: string
+        description: "Game ppid"
+      activeUsers:
+        type: integer
+        description: "Currently active users"
+      timeSpentMinutes:
+        type: integer
+        description: "Minutes spent in game"
+      userGameRank:
+        type: object
+        properties:
+          id:
+            type: integer
+            description: "it can be 0,1,2 and up to some max number"
+          name:
+            type: string
+            description: "Seeker, Watcher and etc"
+          progress:
+            type: number
+            format: double
+            description: "decimal number 0..1, represents progress"
+  IN_APP_INSTALL_DETAILS:
+    type: object
+    properties:
+      installMethod:
+        type: string
+      packageName:
+        type: string
+      appName:
+        type: string
+      description:
+        type: string
+      iconUrl:
+        type: string
+      screenshots:
+        type: array
+        items:
+          type: string
+      developer:
+        type: string
+      apkFileSize:
+        type: number
+      updateTimestamp:
+        type: number
+      website:
+        type: string
+      email:
+        type: string
+      privacyLink:
+        type: string
+      permissions:
+        type: string
+  GAME_ADDITIONAL_WIDGETS:
+    type: object
+    description: "Additional widgets for a game"
+    properties:
+      topRightBadgeUrl:
+        type: string
+        description: "url for top right badge"
+      coinsBadgeUrl:
+        type: string
+        description: "url for coins"
+      coinsEarned:
+        type: number
+        description: "amount of coins for a game"
+      moneyBadgeUrl:
+        type: string
+        description: "url for money badge"
+      moneyPaidOut:
+        type: number
+        description: "amount of money for a game"
+      onlineStarsUrl:
+        type: string
+        description: "url for stars badge"
+      onlinePlayersCount:
+        type: number
+        description: "amount of players for a game"
+  TOP_PART_WIDGET:
+    type: object
+    required:
+      - title
+      - subTitle
+    properties:
+      icon:
+        type: string
+        description: "Link to widget icon picture"
+      title:
+        type: string
+        description: "Widget title"
+      subTitle:
+        type: string
+        description: "Widget subtitle"
+  CASHOUT_COINS_API_DTO:
+    type: object
+    required:
+      - mode
+    properties:
+      mode:
+        type: string
+        enum:
+          - "cashoutNow"
+          - "cashoutForCoins"
+          - "homeScreenCoins"
+      amount:
+        type: integer
+  LIGHT_EXPERIMENT_DTO:
+    type: object
+    required:
+      - key
+      - status
+    properties:
+      key:
+        type: string
+      status:
+        type: string
+        enum: [ "RUNNING", "NOT_STARTED", "FINISHED" ]
+  FULL_EXPERIMENT_DTO:
+    type: object
+    properties:
+      key:
+        type: string
+      status:
+        type: string
+        enum: [ "RUNNING", "NOT_STARTED", "FINISHED" ]
+      startedAt:
+        type: string
+        format: date-time
+      finishedAt:
+        type: string
+        format: date-time
+      minimalAppVersion:
+        type: integer
+      allocation:
+        type: object
+        properties:
+          variationKey:
+            type: string
+          allocation:
+            type: number
