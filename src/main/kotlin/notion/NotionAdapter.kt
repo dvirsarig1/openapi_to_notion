@@ -26,7 +26,6 @@ class NotionAdapter @Inject constructor(
             .filterIsInstance<ChildPageBlock>()
             .firstOrNull { it.childPage.title == pageTitle }
             ?.id
-
         if (pageId != null) {
             logger.info("Page '$pageTitle' already exists, deleting and recreating it.")
             withRetry { client.deleteBlock(pageId) }
@@ -65,7 +64,6 @@ class NotionAdapter @Inject constructor(
     }
 
     private fun createPage(targetPage: String, title: String): Page {
-        logger.info("Creating Page '$title'")
         return withRetry {
             client.createPage(
                 parent = PageParent(pageId = targetPage),

@@ -29,18 +29,29 @@ class NotionTemplate(
     fun render(): List<Block> = blocks {
         pageHeader(fileName, true)
         summarySectionForMainDoc()
-        renderEndpoints()
-        val components = getRemainingComponents()
+        renderEndpoints(selectedCategory = null, fieldCategory = null)
+        val components = getComponents(fieldCategory = null)
         if (components.isNotEmpty()) {
             componentsSection(components)
         }
         authenticationSection()
     }
 
-    fun renderCategoriezDoc(selectedCategory: String): List<Block> = blocks {
+    fun renderCategoriesDoc(selectedCategory: String): List<Block> = blocks {
         pageHeader("$selectedCategory API", true)
         summarySectionForSingleCategory(selectedCategory)
-        renderEndpoints(selectedCategory)
+        renderEndpoints(selectedCategory = selectedCategory, fieldCategory = null)
+        authenticationSection()
+    }
+
+    fun renderFilteredFieldsDoc(fieldCategory: String): List<Block> = blocks {
+        pageHeader(fileName, true)
+        summarySectionForMainDoc()
+        renderEndpoints(selectedCategory = null, fieldCategory = fieldCategory)
+        val components = getComponents(fieldCategory = fieldCategory)
+        if (components.isNotEmpty()) {
+            componentsSection(components, fieldCategory)
+        }
         authenticationSection()
     }
 
@@ -61,32 +72,37 @@ class NotionTemplate(
         )
     }
 
-    private fun BlocksBuilder.renderEndpoints(selectedCategory: String? = null) {
+    private fun BlocksBuilder.renderEndpoints(selectedCategory: String?, fieldCategory: String?) {
         for (platform in categorizedPaths.keys) {
             heading1("🚀 $platform Endpoints", color = Blue, bold = true)
             for (category in PathCategorizer.categoryOrder) {
                 if (selectedCategory != null && selectedCategory != category) continue
                 val paths = categorizedPaths[platform]?.get(category)?.map { it.first } ?: continue
+                val filteredPaths = if (fieldCategory == null) paths else paths.filter { path ->
+                    doesPathContainFieldWithCategory(path, fieldCategory)
+                }
+                if (filteredPaths.isEmpty()) continue
                 heading2("📂 $category", color = Orange, bold = true)
-                createPathToggles(paths)
+                createPathToggles(filteredPaths, fieldCategory)
             }
         }
     }
 
-    private fun getRemainingComponents(): Map<String, Schema<*>> {
+    private fun getComponents(fieldCategory: String?): Map<String, Schema<*>> {
         return swagger.openAPI.components?.schemas
-            ?.filter { (_, schema) -> !consumedComponents.contains(schema) }
-            ?: emptyMap()
+            ?.filter { (_, schema) ->
+                !consumedComponents.contains(schema) && doesSchemaContainCategory(schema, fieldCategory)
+            } ?: emptyMap()
     }
 
-    private fun BlocksBuilder.componentsSection(schemas: Map<String, Schema<*>>) {
+    private fun BlocksBuilder.componentsSection(schemas: Map<String, Schema<*>>, fieldCategory: String? = null) {
         heading1("📄 Schemas", color = Blue, bold = true)
         for ((name, schema) in schemas) {
             heading3("📑 $name", color = Gray, bold = true)
             schema.description?.let { desc ->
                 paragraph(desc)
             }
-            schemaTable(schema)
+            schemaTable(schema, fieldCategory)
         }
     }
 
@@ -139,7 +155,7 @@ class NotionTemplate(
     }
 
 
-    private fun BlocksBuilder.operationRequestSection(operation: Operation) {
+    private fun BlocksBuilder.operationRequestSection(operation: Operation, fieldCategory: String?) {
         operation.requestBody?.let { request ->
             heading3("📬 Request", color = Blue, bold = true)
             request.description?.let { desc ->
@@ -154,7 +170,7 @@ class NotionTemplate(
                         paragraph(richText("Documentation: ", bold = true), richText(it.description ?: it.url, link = it.url))
                     }
 
-                    schemaTable(content.schema)
+                    schemaTable(content.schema, fieldCategory)
 
                     exampleItem(content)
                 }
@@ -162,7 +178,7 @@ class NotionTemplate(
         }
     }
 
-    private fun BlocksBuilder.schemaTable(schema: Schema<*>) {
+    private fun BlocksBuilder.schemaTable(schema: Schema<*>, fieldCategory: String? = null) {
         schema.externalDocs?.let {
             paragraph(richText("Documentation: ", bold = true), richText(it.description ?: it.url, link = it.url))
         }
@@ -180,26 +196,26 @@ class NotionTemplate(
                 cell(richText("Type"))
                 cell(richText("Description"))
             }
-            propertiesRow("", schema)
+            propertiesRow("", schema, fieldCategory)
         }
     }
 
-    private fun BlocksBuilder.operationResponseSection(operation: Operation) {
+    private fun BlocksBuilder.operationResponseSection(operation: Operation, fieldCategory: String?) {
         operation.responses?.let { responses ->
             heading3("📥 Response", color = Green, bold = true)
             for ((code, response) in responses) {
-                operationResponseBody(response, code)
+                operationResponseBody(response, code, fieldCategory)
                 divider()
             }
         }
     }
 
-    private fun BlocksBuilder.operationResponseBody(response: ApiResponse, code: String) {
+    private fun BlocksBuilder.operationResponseBody(response: ApiResponse, code: String, fieldCategory: String?) {
         response.content?.takeIf { it.isNotEmpty() }?.let { contents ->
             for ((contentType, content) in contents) {
                 val actualContentType = if (contentType == "*/*") "application/json" else contentType.ifBlank { "application/json" }
                 responseBodyHeader(code, response, actualContentType)
-                schemaTable(content.schema)
+                schemaTable(content.schema, fieldCategory)
                 exampleItem(content)
             }
         } ?: run {
@@ -223,7 +239,7 @@ class NotionTemplate(
         )
     }
 
-    private fun BlocksBuilder.operationParams(operation: Operation) {
+    private fun BlocksBuilder.operationParams(operation: Operation, fieldCategory: String?) {
         if (!operation.parameters.isNullOrEmpty()) {
             heading3("📋 Parameters", color = Brown, bold = true)
             table(4, hasRowHeader = true, hasColumnHeader = true) {
@@ -234,12 +250,19 @@ class NotionTemplate(
                     cell(richText("Description"))
                 }
                 for (parameter in operation.parameters) {
-                    val required = parameter.required == true
-                    row {
-                        cell(richText(parameter.name + if(required) "" else "?", code = true, color = Default))
-                        cell(richText(parameter.schema?.type ?: ""))
-                        cell(richText(parameter.`in`))
-                        cell(richText(parameter.description ?: ""))
+                    val isValidCategory = fieldCategory == null || parameter.schema?.extensions
+                        ?.get("x-category")
+                        ?.let { it as? List<*> }
+                        ?.contains(fieldCategory) == true
+
+                    if (isValidCategory) {
+                        val required = parameter.required == true
+                        row {
+                            cell(richText(parameter.name + if (required) "" else "?", code = true, color = Default))
+                            cell(richText(parameter.schema?.type ?: ""))
+                            cell(richText(parameter.`in`))
+                            cell(richText(parameter.description ?: ""))
+                        }
                     }
                 }
             }
@@ -256,38 +279,47 @@ class NotionTemplate(
         }
     }
 
-    private fun RowsBuilder.propertiesRow(path: String, schema: Schema<*>) {
+    private fun RowsBuilder.propertiesRow(path: String, schema: Schema<*>, fieldCategory: String?) {
         schema.`$ref`?.let { ref ->
             val resolvedSchema = swagger.resolveSchema(ref)
             consumedComponents.add(resolvedSchema)
-            propertiesRow(path, resolvedSchema)
+            propertiesRow(path, resolvedSchema, fieldCategory)
             return
         }
 
         when (schema) {
             is ObjectSchema -> {
                 schema.properties?.forEach { (property, value) ->
-                    propertiesRowItem(path, property, value, schema)
+                    propertiesRowItem(path, property, value, schema, fieldCategory)
                 }
             }
 
             is MapSchema, is JsonSchema -> {
                 schema.properties?.forEach { (property, value) ->
-                    propertiesRowItem(path, property, value, schema)
+                    propertiesRowItem(path, property, value, schema, fieldCategory)
                 }
                 schema.additionalProperties?.let { additionalProperties ->
                     if (additionalProperties !is Schema<*>) return@let
-                    propertiesRowItem(path, "<*>", additionalProperties)
+                    propertiesRowItem(path, "<*>", additionalProperties, fieldCategory = fieldCategory)
                 }
             }
 
             else -> {
-                propertiesRowItem(path, "", schema)
+                propertiesRowItem(path, "", schema, fieldCategory = fieldCategory)
             }
         }
     }
 
-    private fun RowsBuilder.propertiesRowItem(path: String, property: String, value: Schema<*>, parentSchema: Schema<*>? = null) {
+    private fun RowsBuilder.propertiesRowItem(
+        path: String,
+        property: String,
+        value: Schema<*>,
+        parentSchema: Schema<*>? = null,
+        fieldCategory: String?
+    ) {
+        if (fieldCategory != null && value.extensions?.get("x-category")?.let { it as? List<*> }?.contains(fieldCategory) != true) {
+            return
+        }
         val rowPath = "$path.$property".removePrefix(".").removeSuffix(".")
         val required = parentSchema?.required?.contains(property) == true
         val description = value.description ?: ""
@@ -297,36 +329,32 @@ class NotionTemplate(
         val type = component ?: value.type ?: value.types?.firstOrNull() ?: ""
         val requiredStr = if (required) "" else "?"
 
-
         row {
             cell(
                 richText(rowPath.dropLastWhile { it != '.' }, code = true, color = Default),
                 richText(rowPath.takeLastWhile { it != '.' }, code = true, color = Default, bold = true)
             )
-            cell(richText(type+requiredStr, code = true, color = Pink))
+            cell(richText(type + requiredStr, code = true, color = Pink))
             cell(
                 richText("$description$defaultStr "),
                 value.externalDocs?.let { richText(it.description ?: "Docs", link = it.url) }
             )
         }
 
-        /*
-        */
-
         if (component != null) {
             return
         }
-
         if (value is ObjectSchema || value is MapSchema || value is JsonSchema) {
-            propertiesRow(rowPath, value)
+            propertiesRow(rowPath, value, fieldCategory)
         }
         if (value is ArraySchema || value.items != null) {
-            propertiesRow("$rowPath[]", value.items)
+            propertiesRow("$rowPath[]", value.items, fieldCategory)
         }
     }
 
-    private fun BlocksBuilder.createPathToggles(paths: List<String>) {
+    private fun BlocksBuilder.createPathToggles(paths: List<String>, fieldCategory: String? = null) {
         for (path in paths) {
+            if (fieldCategory != null && !doesPathContainFieldWithCategory(path, fieldCategory)) continue
             val toggleId = toggle(
                 title = path,
                 color = Blue,
@@ -340,7 +368,7 @@ class NotionTemplate(
         }
     }
 
-    private fun generateOperationContent(path: String, method: String, operation: Operation): List<Block> = blocks {
+    private fun generateOperationContent(path: String, method: String, operation: Operation, fieldCategory: String?): List<Block> = blocks {
         paragraph(
             richText(" $method ", code = true, bold = true, color = Green),
             richText(" $path", code = true, color = Default)
@@ -350,20 +378,21 @@ class NotionTemplate(
             paragraph(richText("Documentation: ", bold = true), richText(docs.description ?: docs.url, link = docs.url))
         }
         operationAuth(operation)
-        operationParams(operation)
-        operationRequestSection(operation)
-        operationResponseSection(operation)
+        operationParams(operation, fieldCategory)
+        operationRequestSection(operation, fieldCategory)
+        operationResponseSection(operation, fieldCategory)
     }
 
     fun fillPathTogglesWithContent(
         client: NotionAdapter,
         toggleIds: Map<String, String>,
+        fieldCategory: String? = null
     ) {
         for ((_, categories) in categorizedPaths) {
             for ((_, paths) in categories) {
                 for ((path, method, operation) in paths) {
                     val toggleId = toggleIds[path]
-                    val contentBlocks = generateOperationContent(path, method, operation)
+                    val contentBlocks = generateOperationContent(path, method, operation, fieldCategory)
                     if (toggleId != null) {
                         client.writeTemplate(toggleId, contentBlocks)
                     }
@@ -372,7 +401,7 @@ class NotionTemplate(
         }
     }
 
-    fun createTable(pageId: String, pathLinksMap: Map<String, String>): List<Block> = blocks {
+    fun createTable(pageId: String, pathLinksMap: Map<String, String>, fieldCategory: String?): List<Block> = blocks {
         table(4, hasColumnHeader = true) {
             row {
                 cell(richText("Method"))
@@ -383,6 +412,7 @@ class NotionTemplate(
 
             for (path in swagger.openAPI.paths) {
                 for ((method, operation) in path.value.readOperationsMap()) {
+                    if (!doesPathContainFieldWithCategory(path.key, fieldCategory)) continue
                     val security = operation.security ?: swagger.openAPI.security
                     val authText = if (security.isNullOrEmpty()) {
                         swagger.openAPI.components?.securitySchemes?.get("BasicAuth")?.let { "BasicAuth" } ?: ""
@@ -404,5 +434,22 @@ class NotionTemplate(
                 }
             }
         }
+    }
+
+    private fun doesPathContainFieldWithCategory(path: String, fieldCategory: String?): Boolean {
+        if (fieldCategory == null) return true
+        val operation = swagger.openAPI.paths[path]?.readOperations()?.firstOrNull() ?: return false
+        return operation.requestBody?.content?.values?.any { content ->
+            content.schema?.properties?.values?.any { property ->
+                property.extensions?.get("x-category")?.let { it as? List<*> }?.contains(fieldCategory) == true
+            } == true
+        } == true
+    }
+
+    private fun doesSchemaContainCategory(schema: Schema<*>, fieldCategory: String?): Boolean {
+        if (fieldCategory == null) return true
+        return schema.properties?.values?.any { property ->
+            property.extensions?.get("x-category")?.let { it as? List<*> }?.contains(fieldCategory) == true
+        } == true
     }
 }

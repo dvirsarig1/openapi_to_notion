@@ -1,3 +1,4 @@
+
 swagger: "2.0"
 info:
   title: "JustPlay API"
@@ -58,9 +59,13 @@ paths:
             type: object
             properties:
               payload:
+                x-category:
+                  - PII
                 type: string
                 description: 'String encoded JSON of original create-user request (see #/definitions/CREATE_USER_REQUEST)'
               token:
+                x-category:
+                  - AUTHENTICATION_DATA
                 type: string
                 description: 'Play Integrity Standard Request token, with requestHash equal to SHA256 (hex) hash of payload'
       responses:
@@ -4246,30 +4251,45 @@ parameters:
     description: "Android app version"
     type: integer
     required: true
+    x-category:
+      - APP_CONFIG
+
   IOS_APP_VERSION_HEADER:
     name: X-iOS-AppVersion
     in: header
     description: "iOS app version"
     type: integer
     required: true
+    x-category:
+      - APP_CONFIG
+
   VERIFICATION_SESSION_HEADER:
     name: X-VSession
     in: header
     description: "Verification session id"
     type: string
     required: true
+    x-category:
+      - SESSION_INFO
+
   DESIRED_APP_VERSION_HEADER:
     name: X-Playtime-Desired-AppVersion
     in: header
-    description: "Android app version"
+    description: "Desired Android app version"
     type: integer
     required: true
+    x-category:
+      - APP_CONFIG
+
   MARKET_HEADER:
     name: X-Playtime-Market
     in: header
     description: "Market (for routing to backend instance)"
     type: string
     required: false
+    x-category:
+      - APP_CONFIG
+
   USER_ID_PATH:
     name: userId
     in: path
@@ -4277,18 +4297,26 @@ parameters:
     type: string
     format: uuid
     required: true
+    x-category:
+      - PII
+
   GEO_LOCATION_HEADER:
     name: X-Client-Geo-Location
     in: header
     description: "User location"
     type: string
     required: true
+    x-category:
+      - GEO_DATA
+
   IOS_APP_ENV_HEADER:
     name: X-iOS-Env
     in: header
     description: "iOS app environment"
     type: string
     required: true
+    x-category:
+      - APP_CONFIG
 definitions:
   GAME_GOAL:
     type: object
@@ -4343,15 +4371,21 @@ definitions:
     properties:
       userId:
         type: string
+        x-category:
+          - PII
         format: uuid
       market:
         type: string
+        x-category:
+          - PII
         description: "JP market"
       deviceAttestationAtUserCreation:
         type: boolean
         description: "Should device attestation be triggered by the app right after user creation"
       showPointingArrow:
         type: boolean
+        x-category:
+          - PII
         description: "Pointing arrow enhancement"
       welcomeBonusPopupAvailable:
         type: boolean
@@ -4370,9 +4404,13 @@ definitions:
         description: "Show top running bar"
       useGdpr:
         type: boolean
+        x-category:
+          - PII
         description: "Is GDPR policy applies to user"
       userConfig:
         type: object
+        x-category:
+          - PII
         required:
           - experimentVariations
         properties:
@@ -4397,33 +4435,51 @@ definitions:
   CREATE_USER_REQUEST:
     description: 'Android`s request to create user'
     type: object
+    x-category:
+      - PII
     properties:
       networkCountry:
         type: string
         description: "Mobile network country"
+        x-category:
+          - PII
       networkOperatorName:
         type: string
         description: "Mobile network operator name"
+        x-category:
+          - PII
       simCountry:
         type: string
         description: "Sim country"
+        x-category:
+          - PII
       simOperatorName:
         type: string
         description: "Sim operator name"
+        x-category:
+          - PII
       deviceLocale:
         type: string
         description: "Device locale"
+        x-category:
+          - PII
       installedFromStore:
         type: boolean
         description: "Is game installed from store (app driven)"
+        x-category:
+          - PII
       userPublicKey:
         type: string
         description: "Public key for app-backend interactions"
+        x-category:
+          - PII
       signatureText:
         type: string
         description: "Signature of user creation request"
       simInfoList:
         type: array
+        x-category:
+          - PII
         items:
           type: object
           required:
@@ -4436,12 +4492,16 @@ definitions:
             networkCountry:
               type: string
               description: "Mobile network country"
+              x-category:
+                - PII
             networkOperatorName:
               type: string
               description: "Mobile network operator name"
             simCountry:
               type: string
               description: "Sim country"
+              x-category:
+                - PII
             simOperatorName:
               type: string
               description: "Sim operator name"
@@ -4458,55 +4518,89 @@ definitions:
       - donation
       - enabled
       - bonusEnabled
+    x-category:
+      - CASHOUT
     properties:
       displayName:
         type: string
         description: "Provider display name"
+        x-category:
+          - CASHOUT
       url:
         type: string
         description: "URL to provider website"
+        x-category:
+          - CASHOUT
       videoUrl:
         type: string
         description: "URL to provider video"
+        x-category:
+          - CASHOUT
       iconUrl:
         type: string
         description: "URL to provider icon"
+        x-category:
+          - CASHOUT
       text:
         type: string
         description: "Provider description"
+        x-category:
+          - CASHOUT
       shortText:
         type: string
-        description: "Sort provider description"
+        description: "Short provider description"
+        x-category:
+          - CASHOUT
       provider:
         type: string
         description: "Payment provider name"
+        x-category:
+          - CASHOUT
       donation:
         type: boolean
         description: "Is donation"
+        x-category:
+          - CASHOUT
       disclaimer:
         type: string
         description: "Payment provider disclaimer"
+        x-category:
+          - CASHOUT
       emailHint:
         type: string
         description: "Hint for email text input"
+        x-category:
+          - CASHOUT
       minimumAmount:
         type: string
         description: "Minimal amount for cash out"
+        x-category:
+          - CASHOUT
       maximumAmount:
         type: string
         description: "Maximum amount for cash out"
+        x-category:
+          - CASHOUT
       enabled:
         type: boolean
         description: "Is cash out enabled"
+        x-category:
+          - CASHOUT
       bonusEnabled:
         type: boolean
         description: "Is bonus cash out enabled"
+        x-category:
+          - CASHOUT
       identifierType:
         type: string
         description: "One of [email|user_handle|phone_number]"
+        x-category:
+          - CASHOUT
       identifierHint:
         type: string
         description: "Hint for identifierType input"
+        x-category:
+          - CASHOUT
   IOS_GAME:
     type: object
     required:
@@ -4520,153 +4614,253 @@ definitions:
       - iosApplicationId
       - iosGameUrl
       - showBadge
+    x-category:
+      - GAME_DATA
     properties:
       id:
         type: integer
         description: "Game unique id"
+        x-category:
+          - GAME_DATA
       applicationId:
         type: string
         description: "Game application id in app store"
+        x-category:
+          - GAME_DATA
       name:
         type: string
         description: "Game name"
+        x-category:
+          - GAME_DATA
       description:
         type: string
         description: "Game description"
+        x-category:
+          - GAME_DATA
       iconFilename:
         type: string
         description: "URL of game icon"
+        x-category:
+          - GAME_DATA
       imageFilename:
         type: string
         description: "URL of game image"
+        x-category:
+          - GAME_DATA
       infoTextInstall:
         type: string
         description: "Text on install preview"
+        x-category:
+          - GAME_DATA
       iosApplicationId:
         type: string
-        description: "id on App Store"
+        description: "ID on App Store"
+        x-category:
+          - GAME_DATA
       iosGameUrl:
         type: string
         description: "URL to launch application in iOS"
+        x-category:
+          - GAME_DATA
       preGameScreen:
         type: object
+        x-category:
+          - GAME_DATA
         properties:
           title:
             type: string
             description: "Title for pre screen"
+            x-category:
+              - GAME_DATA
           description:
             type: string
             description: "Description for pre screen"
+            x-category:
+              - GAME_DATA
           tags:
             type: array
             items:
               type: string
               description: "Tags for short-describing game"
+              x-category:
+                - GAME_DATA
           images:
             type: array
             items:
               type: string
               description: "Images of game for pre screen"
+              x-category:
+                - GAME_DATA
       showBadge:
         type: boolean
         description: "Flag to show Most Coins badge"
+        x-category:
+          - GAME_DATA
       ppid:
         type: string
         description: "Game ppid"
+        x-category:
+          - GAME_DATA
       activeUsers:
         type: integer
         description: "Currently active users"
+        x-category:
+          - GAME_DATA
       timeSpentMinutes:
         type: integer
         description: "Minutes spent in game"
+        x-category:
+          - GAME_DATA
       userGameRank:
         type: object
+        x-category:
+          - GAME_DATA
         properties:
           id:
             type: integer
-            description: "it can be 0,1,2 and up to some max number"
+            description: "It can be 0,1,2 and up to some max number"
+            x-category:
+              - GAME_DATA
           name:
             type: string
             description: "Seeker, Watcher and etc"
+            x-category:
+              - GAME_DATA
           progress:
             type: number
             format: double
-            description: "decimal number 0..1, represents progress"
+            description: "Decimal number 0..1, represents progress"
+            x-category:
+              - GAME_DATA
   IN_APP_INSTALL_DETAILS:
     type: object
+    x-category:
+      - APP_INSTALLATION
     properties:
       installMethod:
         type: string
+        x-category:
+          - APP_INSTALLATION
       packageName:
         type: string
+        x-category:
+          - APP_INSTALLATION
       appName:
         type: string
+        x-category:
+          - APP_INSTALLATION
       description:
         type: string
+        x-category:
+          - APP_INSTALLATION
       iconUrl:
         type: string
+        x-category:
+          - APP_INSTALLATION
       screenshots:
         type: array
         items:
           type: string
+          x-category:
+            - APP_INSTALLATION
       developer:
         type: string
+        x-category:
+          - APP_INSTALLATION
       apkFileSize:
         type: number
+        x-category:
+          - APP_INSTALLATION
       updateTimestamp:
         type: number
+        x-category:
+          - APP_INSTALLATION
       website:
         type: string
+        x-category:
+          - APP_INSTALLATION
       email:
         type: string
+        x-category:
+          - APP_INSTALLATION
       privacyLink:
         type: string
+        x-category:
+          - APP_INSTALLATION
       permissions:
         type: string
+        x-category:
+          - APP_INSTALLATION
   GAME_ADDITIONAL_WIDGETS:
     type: object
     description: "Additional widgets for a game"
+    x-category:
+      - GAME_DATA
     properties:
       topRightBadgeUrl:
         type: string
         description: "url for top right badge"
+        x-category:
+          - UI_ENHANCEMENT
       coinsBadgeUrl:
         type: string
         description: "url for coins"
+        x-category:
+          - UI_ENHANCEMENT
       coinsEarned:
         type: number
         description: "amount of coins for a game"
+        x-category:
+          - GAME_DATA
       moneyBadgeUrl:
         type: string
         description: "url for money badge"
+        x-category:
+          - UI_ENHANCEMENT
       moneyPaidOut:
         type: number
         description: "amount of money for a game"
+        x-category:
+          - GAME_DATA
       onlineStarsUrl:
         type: string
         description: "url for stars badge"
+        x-category:
+          - UI_ENHANCEMENT
       onlinePlayersCount:
         type: number
         description: "amount of players for a game"
+        x-category:
+          - GAME_DATA
   TOP_PART_WIDGET:
     type: object
     required:
       - title
       - subTitle
+    x-category:
+      - UI_ENHANCEMENT
     properties:
       icon:
         type: string
         description: "Link to widget icon picture"
+        x-category:
+          - UI_ENHANCEMENT
       title:
         type: string
         description: "Widget title"
+        x-category:
+          - UI_ENHANCEMENT
       subTitle:
         type: string
         description: "Widget subtitle"
+        x-category:
+          - UI_ENHANCEMENT
   CASHOUT_COINS_API_DTO:
     type: object
     required:
       - mode
+    x-category:
+      - CASHOUT
     properties:
       mode:
         type: string
@@ -4674,39 +4868,67 @@ definitions:
           - "cashoutNow"
           - "cashoutForCoins"
           - "homeScreenCoins"
+        x-category:
+          - CASHOUT
       amount:
         type: integer
+        x-category:
+          - CASHOUT
   LIGHT_EXPERIMENT_DTO:
     type: object
     required:
       - key
       - status
+    x-category:
+      - EXPERIMENT_DATA
     properties:
       key:
         type: string
+        x-category:
+          - EXPERIMENT_DATA
       status:
         type: string
         enum: [ "RUNNING", "NOT_STARTED", "FINISHED" ]
+        x-category:
+          - EXPERIMENT_DATA
   FULL_EXPERIMENT_DTO:
     type: object
+    x-category:
+      - EXPERIMENT_DATA
     properties:
       key:
         type: string
+        x-category:
+          - EXPERIMENT_DATA
       status:
         type: string
         enum: [ "RUNNING", "NOT_STARTED", "FINISHED" ]
+        x-category:
+          - EXPERIMENT_DATA
       startedAt:
         type: string
         format: date-time
+        x-category:
+          - EXPERIMENT_DATA
       finishedAt:
         type: string
         format: date-time
+        x-category:
+          - EXPERIMENT_DATA
       minimalAppVersion:
         type: integer
+        x-category:
+          - APP_CONFIG
       allocation:
         type: object
+        x-category:
+          - EXPERIMENT_DATA
         properties:
           variationKey:
             type: string
+            x-category:
+              - EXPERIMENT_DATA
           allocation:
             type: number
+            x-category:
+              - EXPERIMENT_DATA
