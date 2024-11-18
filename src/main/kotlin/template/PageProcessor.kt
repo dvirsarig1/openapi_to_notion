@@ -59,7 +59,7 @@ class PageProcessor @Inject constructor(
         notionAdapter.deletePageContents(pageId, pageTitle)
 
         val contentBlocks = when {
-            fieldCategory != null -> notionTemplate.renderFilteredFieldsDoc(fieldCategory)
+            fieldCategory != null -> notionTemplate.render(fieldCategory)
             endpointCategory != null -> notionTemplate.renderCategoriesDoc(endpointCategory)
             else -> notionTemplate.render()
         }

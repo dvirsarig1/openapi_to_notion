@@ -26,13 +26,13 @@ class NotionTemplate(
     private val categorizedPaths = PathCategorizer.categorizePathsByTags(swagger.openAPI.paths)
     private val toggleIds = mutableMapOf<String, String>()
 
-    fun render(): List<Block> = blocks {
+    fun render(fieldCategory: String? = null): List<Block> = blocks {
         pageHeader(fileName, true)
         summarySectionForMainDoc()
-        renderEndpoints(selectedCategory = null, fieldCategory = null)
-        val components = getComponents(fieldCategory = null)
+        renderEndpoints(selectedCategory = null, fieldCategory = fieldCategory)
+        val components = getComponents(fieldCategory = fieldCategory)
         if (components.isNotEmpty()) {
-            componentsSection(components)
+            componentsSection(components, fieldCategory)
         }
         authenticationSection()
     }
@@ -41,17 +41,6 @@ class NotionTemplate(
         pageHeader("$selectedCategory API", true)
         summarySectionForSingleCategory(selectedCategory)
         renderEndpoints(selectedCategory = selectedCategory, fieldCategory = null)
-        authenticationSection()
-    }
-
-    fun renderFilteredFieldsDoc(fieldCategory: String): List<Block> = blocks {
-        pageHeader(fileName, true)
-        summarySectionForMainDoc()
-        renderEndpoints(selectedCategory = null, fieldCategory = fieldCategory)
-        val components = getComponents(fieldCategory = fieldCategory)
-        if (components.isNotEmpty()) {
-            componentsSection(components, fieldCategory)
-        }
         authenticationSection()
     }
 
