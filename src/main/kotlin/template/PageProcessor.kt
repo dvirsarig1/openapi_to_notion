@@ -25,8 +25,8 @@ class PageProcessor @Inject constructor(
         val swagger = parseSwaggerFile(file) ?: return
         val notionTemplate = NotionTemplate(swagger, file.fileName.toString())
 
-        //createMainPage(targetPage, swagger.openAPI.info.title ?: return, notionTemplate)
-        //createCategorySubpages(targetPage, notionTemplate, selectedCategories)
+        createMainPage(targetPage, swagger.openAPI.info.title ?: return, notionTemplate)
+        createCategorySubpages(targetPage, notionTemplate, selectedCategories)
         createFilteredFieldPage(targetPage, notionTemplate, fieldCategory)
         notionAdapter.close()
     }
