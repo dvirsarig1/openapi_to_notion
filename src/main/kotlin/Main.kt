@@ -9,11 +9,11 @@ fun main(args: Array<String>) {
         error("Configuration file 'config.yaml' not found in the specified directory.")
     }
     val notionToken = System.getenv("NOTION_TOKEN") ?: error("Missing NOTION_TOKEN environment variable")
-    val tags = args.find { it.startsWith("--tags=") }?.removePrefix("--tags=")?.split(",") ?: emptyList()
+    val routesCategory = args.find { it.startsWith("--routes-category=") }?.removePrefix("--tags=")?.split(",") ?: emptyList()
     val fieldCategory = args.find { it.startsWith("--field-category=") }?.removePrefix("--field-category=")
     val injector = Guice.createInjector(AppModule(configFile, notionToken))
     val app = injector.getInstance(App::class.java)
-    app.run(tags, fieldCategory)
+    app.run(routesCategory, fieldCategory)
 }
 
 

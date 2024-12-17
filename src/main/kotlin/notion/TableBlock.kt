@@ -9,8 +9,6 @@ import notion.api.v1.model.common.ObjectType
 import notion.api.v1.model.users.User
 import java.util.*
 
-// adds the children property missing from library
-// https://github.com/seratch/notion-sdk-jvm/issues/140
 open class TableBlock(
     @SerializedName("object") override val objectType: ObjectType = ObjectType.Block,
     override val type: BlockType = BlockType.Table,

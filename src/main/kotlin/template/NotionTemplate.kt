@@ -5,7 +5,6 @@ import notion.BlocksBuilder.RowsBuilder
 import notion.NotionAdapter
 import notion.blocks
 import notion.richText
-import openapi.resolveSchema
 import template.components.exampleItem
 import template.components.pageHeader
 import template.components.serverUrl
@@ -297,6 +296,15 @@ class NotionTemplate(
                 propertiesRowItem(path, "", schema, fieldCategory = fieldCategory)
             }
         }
+    }
+
+    private fun SwaggerParseResult.resolveSchema(ref: String): Schema<*> {
+        val components = openAPI.components
+        val schema = components.schemas[ref]
+        if (schema != null) return schema
+        val refSchema = components.schemas[ref.substringAfterLast("/")]
+        if (refSchema != null) return refSchema
+        error("Could not resolve schema $ref")
     }
 
     private fun RowsBuilder.propertiesRowItem(
