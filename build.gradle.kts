@@ -48,6 +48,10 @@ tasks {
             attributes(mapOf("Main-Class" to "MainKt"))
         }
     }
+
+    build {
+        dependsOn(shadowJar)
+    }
 }
 
 tasks.test {
