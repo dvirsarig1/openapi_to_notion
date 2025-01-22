@@ -14,8 +14,7 @@ fi
 
 # הרץ את התוכנית בקוטלין
 java -jar build/libs/app.jar \
-  --routes-category="" \
-  --field-category=""
+  --field-category="PII"
 
 # הודעת סיום
 echo "Notion update completed!"
