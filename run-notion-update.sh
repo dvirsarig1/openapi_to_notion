@@ -8,7 +8,7 @@ export NOTION_TOKEN="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"
 
 
 # הרץ את התוכנית בקוטלין
-java -jar your-tool.jar \
+java -jar build/libs/app.jar \
   --routes-category="" \
   --field-category=""
 
