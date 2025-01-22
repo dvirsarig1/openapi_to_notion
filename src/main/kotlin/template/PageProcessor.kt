@@ -25,7 +25,7 @@ class PageProcessor @Inject constructor(
         val swagger = parseSwaggerFile(file) ?: return
         val notionTemplate = NotionTemplate(swagger, file.fileName.toString())
 
-        createMainPage(targetPage, swagger.openAPI.info.title ?: return, notionTemplate)
+        createMainPage(targetPage, "OpenAPI (all)", notionTemplate)
         createCategorySubpages(targetPage, notionTemplate, selectedCategories)
         createFilteredFieldPage(targetPage, notionTemplate, fieldCategory)
         notionAdapter.close()
@@ -43,7 +43,7 @@ class PageProcessor @Inject constructor(
 
     private fun createFilteredFieldPage(targetPage: String, notionTemplate: NotionTemplate, fieldCategory: String?) {
         fieldCategory?.let {
-            createPage(targetPage, "$fieldCategory Information", notionTemplate, fieldCategory = it)
+            createPage(targetPage, "OpenAPI ($fieldCategory)", notionTemplate, fieldCategory = it)
         }
     }
 
