@@ -1,4 +1,3 @@
-
 swagger: "2.0"
 info:
   title: "JustPlay API"
@@ -13,12 +12,16 @@ x-google-backend:
   address: "https://test-dot-playspot-server-dev.appspot.com/"
   disable_auth: true
 paths:
+  /playtime/headers:
+    get:
+      description: "Log request headers"
+      operationId: "requestHeaders"
+      responses:
+        200:
+          description: "Success"
   /playtime/users:
     post:
       description: "Create a JustPlay user"
-      tags:
-        - Android
-        - ONBOARDING
       operationId: "createUser"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -45,9 +48,6 @@ paths:
   /playtime/android/users:
     post:
       description: "Create a JustPlay user"
-      tags:
-        - Android
-        - ONBOARDING
       operationId: "createUser_android"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -59,13 +59,9 @@ paths:
             type: object
             properties:
               payload:
-                x-category:
-                  - PII
                 type: string
                 description: 'String encoded JSON of original create-user request (see #/definitions/CREATE_USER_REQUEST)'
               token:
-                x-category:
-                  - AUTHENTICATION_DATA
                 type: string
                 description: 'Play Integrity Standard Request token, with requestHash equal to SHA256 (hex) hash of payload'
       responses:
@@ -84,9 +80,6 @@ paths:
   /playtime/android/users/online:
     get:
       description: "Get online users count"
-      tags:
-        - Android
-        - TRACKING
       operationId: "android_getOnlineUsers"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -109,9 +102,6 @@ paths:
   /playtime/android/users/{userId}/pre-game-screen-opened:
     post:
       description: "Signal server that user opened pre game screen"
-      tags:
-        - Android
-        - TRACKING
       operationId: "postUserPreGameScreenOpened"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -127,9 +117,6 @@ paths:
   /playtime/android/users/{userId}/provider-survey:
     post:
       description: "Submit provider survey"
-      tags:
-        - Android
-        - FEEDBACK
       operationId: "android_submitProviderSurvey"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -161,9 +148,6 @@ paths:
   /playtime/users/{userId}/notificationReport:
     post:
       description: "Notification open webhook"
-      tags:
-        - Android
-        - TO_DELETE
       operationId: "notificationReport"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -194,9 +178,6 @@ paths:
   /playtime/users/{userId}/offers:
     get:
       description: "Get offers"
-      tags:
-        - Android
-        - ENGAGEMENT
       operationId: "getOffers"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -337,6 +318,9 @@ paths:
                     action:
                       type: string
                       description: "Small offer only: one of [market|offerwall|facebookLogin|videoAd|instagramLogin]"
+                    rightImageUrl:
+                      type: string
+                      description: "Small offer only: url for right-side icon"
                     activityName:
                       type: string
                       description: "Large offer only: Related app main activity name. For valid android 11 installed game redirection"
@@ -345,7 +329,7 @@ paths:
                       description: "Large offer only: Enabled flag"
                     title:
                       type: string
-                      description: "Large offer only: Game title"
+                      description: "Large/Small offer only: title"
                     subtitle:
                       type: string
                       description: "Large offer only: Game sub-title"
@@ -471,9 +455,6 @@ paths:
   /playtime/users/{userId}/offers/{offerId}/completion:
     post:
       description: "Offer completion webhook"
-      tags:
-        - Android
-        - ENGAGEMENT
       operationId: "completeOffer"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -493,10 +474,8 @@ paths:
           $ref: '#/responses/5XX_SERVER_ERROR'
   /playtime/users/{userId}/offers/mark-viewed-games:
     post:
+      deprecated: true
       description: "Track viewed games"
-      tags:
-        - Android
-        - ENGAGEMENT
       operationId: "markViewedGames"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -525,9 +504,6 @@ paths:
   /playtime/users/{userId}/offers/preferred-games:
     get:
       description: "Pick preferred games from the list"
-      tags:
-        - Android
-        - ENGAGEMENT
       operationId: "getPickPreferredGames"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -568,9 +544,6 @@ paths:
   /playtime/users/{userId}/offers/preferred-games/selected:
     post:
       description: "Send back list of preferred games picked by user"
-      tags:
-        - Android
-        - ENGAGEMENT
       operationId: "postPreferredGames"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -605,9 +578,6 @@ paths:
   /playtime/users/{userId}/offers/{offerId}/dismiss:
     post:
       description: "Dismiss remindable offer"
-      tags:
-        - Android
-        - ENGAGEMENT
       operationId: "dismissOffer"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -628,9 +598,6 @@ paths:
   /playtime/users/{userId}/offers/{offerId}/playstore-opened:
     post:
       description: "Notify that google playstore opened to install game"
-      tags:
-        - Android
-        - ENGAGEMENT
       operationId: "playstoreOpened"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -651,28 +618,7 @@ paths:
   /playtime/users/{userId}/welcome-coins-acceptation:
     post:
       description: "Welcome Coins acceptation webhook"
-      tags:
-        - Android
-        - TRACKING
       operationId: "welcomeCoinsAcceptation"
-      parameters:
-        - $ref: '#/parameters/MARKET_HEADER'
-        - $ref: '#/parameters/APP_VERSION_HEADER'
-        - $ref: '#/parameters/USER_ID_PATH'
-      responses:
-        200:
-          description: "Ok"
-        400:
-          $ref: '#/responses/4XX_REQUEST_ERROR'
-        500:
-          $ref: '#/responses/5XX_SERVER_ERROR'
-  /playtime/users/{userId}/claim-goal-coins:
-    post:
-      description: "Claim bonus coins from Game Coin Goals"
-      tags:
-        - Android
-        - TRACKING
-      operationId: "claimGoalCoins"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
         - $ref: '#/parameters/APP_VERSION_HEADER'
@@ -687,9 +633,6 @@ paths:
   /playtime/users/{userId}:
     get:
       description: "Get user data"
-      tags:
-        - Android
-        - GENERIC
       operationId: "getUserData"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -714,6 +657,7 @@ paths:
               - useRewards
               - experimentVariations
               - giftBoxInsteadOfEarnings
+              - tutorialSteps
             properties:
               id:
                 type: string
@@ -760,6 +704,8 @@ paths:
               showRewards:
                 type: boolean
                 description: "Show rewards"
+              privacyRegulation:
+                $ref: '#/definitions/PRIVACY_REGULATION'
               experimentVariations:
                 type: array
                 items:
@@ -794,6 +740,23 @@ paths:
                 type: array
                 items:
                   type: string
+                  enum:
+                    - "welcome"
+                    - "reach_goal"
+                    - "cash_out"
+                    - "notification_permission"
+                    - "welcome_bonus"
+                    - "explore_now_medium_scroll"
+                    - "pick_preferred_games_dialog"
+                    - "welcome_fullscreen"
+                    - "reach_goal_fullscreen"
+                    - "cash_out_fullscreen"
+                    - "notification_permission_fullscreen"
+                    - "welcome_bonus_fullscreen"
+                    - "pick_preferred_games_dialog_fullscreen"
+                    - "review_fullscreen"
+                    - "explore_now_1st_game"
+                    - "explore_now_1st_game_hand"
               videoAdIntervalSeconds:
                 type: integer
                 description: "A cool down time in seconds between video ad offers"
@@ -850,28 +813,16 @@ paths:
                 description: "Indicates that user consented to GDPR analytics or is not part of GDPR country"
               enablePlaystoreTrackingNotifications:
                 type: boolean
-                description: "Defines if application should notify backend about opening google play to install game"
+                description: "Defines if application should notify backend about opening google play to install game. Deprecated (Offboarded from app version 68)"
               playersOnlineType:
                 type: string
                 description: "Indicates experiment variation value with users online count to be displayed to User or not. Deprecated (Offboarded from app version 63)"
-              gameGoal:
-                $ref: '#/definitions/GAME_GOAL'
               cashoutButtonStyle:
                 type: string
                 description: "Style for Cashout button. Values: [<null>, GRAY_DEFAULT, GRAY_GREEN]"
               giftBoxInsteadOfEarnings:
                 type: boolean
                 description: "Whether to hide earnings amount and show gift box icon instead. Values: [false, true]"
-              topPartWidgets:
-                type: object
-                description: "Widgets at the top of application screen"
-                properties:
-                  singlePartWidget:
-                    $ref: '#/definitions/TOP_PART_WIDGET'
-                  doublePartWidget:
-                    type: array
-                    items:
-                      $ref: '#/definitions/TOP_PART_WIDGET'
               paymentProviderSurvey:
                 type: object
                 description: "Payment provider survey"
@@ -928,9 +879,6 @@ paths:
   /playtime/users/{userId}/googleAdId:
     post:
       description: "Associate Google Ad Id with user"
-      tags:
-        - Android
-        - ONBOARDING
       operationId: "setGoogleAdId"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -958,9 +906,6 @@ paths:
   /playtime/users/{userId}/appSetId:
     post:
       description: "Associate AppSetId with user"
-      tags:
-        - Android
-        - ONBOARDING
       operationId: "setAppSetId"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -988,9 +933,6 @@ paths:
   /playtime/users/{userId}/deviceToken:
     post:
       description: "Associate device token with user"
-      tags:
-        - Android
-        - ONBOARDING
       operationId: "setDeviceToken"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1017,9 +959,6 @@ paths:
   /playtime/users/{userId}/firebaseAppInstanceId:
     post:
       description: "Associate firebase app instance id with user"
-      tags:
-        - Android
-        - ONBOARDING
       operationId: "setFirebaseInstanceId"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1046,9 +985,6 @@ paths:
   /playtime/users/{userId}/adjustId:
     post:
       description: "Associate Adjust Id with user"
-      tags:
-        - Android
-        - ONBOARDING
       operationId: "setAdjustId"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1075,9 +1011,6 @@ paths:
   /playtime/users/{userId}/consent:
     post:
       description: "Track user consent"
-      tags:
-        - Android
-        - ENGAGEMENT
       operationId: "setConsentInfo"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1098,6 +1031,10 @@ paths:
               hasConsentedToTargetedAdvertisement:
                 type: boolean
                 description: "Consent to ads"
+              librariesConsent:
+                type: object
+                additionalProperties:
+                  type: string
       responses:
         200:
           description: "Ok"
@@ -1108,9 +1045,6 @@ paths:
   /playtime/users/{userId}/delete:
     post:
       description: "Request user deletion"
-      tags:
-        - Android
-        - GENERIC
       operationId: "requestUserDeletion"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1123,12 +1057,36 @@ paths:
           $ref: '#/responses/4XX_REQUEST_ERROR'
         500:
           $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/videoAdReward:
+    post:
+      description: "Reward (revenue) value for loaded video ad"
+      operationId: "setVideoAdReward"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Reward value for video ad"
+          schema:
+            type: object
+            required:
+              - revenue
+            properties:
+              revenue:
+                type: number
+                format: double
+                description: "reward (revenue) value"
+      responses:
+        200:
+          description: "Ok"
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
   /playtime/users/{userId}/verification/initiate:
     post:
       description: "Initiate user verification session"
-      tags:
-        - Android
-        - VERIFICATION
       operationId: "initiateVerification"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1197,9 +1155,6 @@ paths:
   /playtime/users/{userId}/verification/verify-face:
     post:
       description: "Verify user's face"
-      tags:
-        - Android
-        - VERIFICATION
       operationId: "verifyFace"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1235,9 +1190,6 @@ paths:
   /playtime/users/{userId}/verification/validateEmail:
     post:
       description: "Validate email"
-      tags:
-        - Android
-        - VERIFICATION
       operationId: "emailValidation"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1272,9 +1224,6 @@ paths:
   /playtime/users/{userId}/verification/validateUserHandle:
     post:
       description: "Validate Venmo User Handle"
-      tags:
-        - Android
-        - VERIFICATION
       operationId: "venmoUserValidation"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1309,9 +1258,6 @@ paths:
   /playtime/users/{userId}/verification/verify-phone:
     post:
       description: "Verify user's phone"
-      tags:
-        - Android
-        - VERIFICATION
       operationId: "verifyPhone"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1333,9 +1279,6 @@ paths:
   /playtime/users/{userId}/verification/location:
     post:
       description: "Verify GPS location"
-      tags:
-        - Android
-        - VERIFICATION
       operationId: "androidLocationVerification"
       parameters:
         - $ref: '#/parameters/APP_VERSION_HEADER'
@@ -1362,9 +1305,6 @@ paths:
   /playtime/users/{userId}/cashout:
     get:
       description: "Get user cashout data"
-      tags:
-        - Android
-        - CASHOUT
       operationId: "getCashoutData"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1466,7 +1406,7 @@ paths:
                 description: "Indicates that user consented to GDPR analytics or is not part of GDPR country"
               oneClickType:
                 type: string
-                description: "Indicates one click cashout type: [CONFIRM_ONLY|ONE_CLICK_ONLY|CONFIRM_AND_ONE_CLICK]"
+                description: "Indicates one click cashout type. Deprecated (always ONE_CLICK_ONLY). Unused from app version = 65"
               videoAdType:
                 type: string
                 description: "Video ad after cashout type: [interstitial|rewarded]. Deprecated (always interstitial)"
@@ -1484,7 +1424,19 @@ paths:
                   - "linear"
                   - "dashed"
                   - "circles"
-
+              visualTrust:
+                type: string
+                description: "Visual trust experiment switch"
+                enum:
+                  - "<null>"
+                  - "allScreens"
+                  - "faceAndGeo"
+              cashoutFormStyle:
+                type: string
+                description: "Fullscreen cashout experiment switch"
+                enum:
+                  - "<null>"
+                  - "fullscreen"
         400:
           $ref: '#/responses/4XX_REQUEST_ERROR'
         500:
@@ -1492,9 +1444,6 @@ paths:
     post:
       deprecated: true
       description: "Initiate cashout. Deprecated in favor to /cashout/demand"
-      tags:
-        - Android
-        - CASHOUT
       operationId: "initiateCashout"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1536,9 +1485,6 @@ paths:
   /playtime/users/{userId}/cashout/demand:
     post:
       description: "Initiate cashout"
-      tags:
-        - Android
-        - CASHOUT
       operationId: "initiateCashoutDemand"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1591,9 +1537,6 @@ paths:
   /playtime/users/{userId}/cashout/stats:
     get:
       description: "Get user cashout statistics"
-      tags:
-        - Android
-        - CASHOUT
       operationId: "getCashoutStats"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1629,9 +1572,6 @@ paths:
   /playtime/users/{userId}/cashout/last-successful-transaction:
     get:
       description: "Get user last successful cashout transaction"
-      tags:
-        - Android
-        - CASHOUT
       operationId: "getLastSuccessfulTransaction"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1667,9 +1607,6 @@ paths:
   /playtime/users/{userId}/cashout/videoAdFinished:
     post:
       description: "Video ad finished after cashout event"
-      tags:
-        - Android
-        - TRACKING
       operationId: "videoAdFinished"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1690,9 +1627,6 @@ paths:
   /playtime/users/{userId}/cashout/initiated:
     post:
       description: "Track if user initiated cashout"
-      tags:
-        - Android
-        - TRACKING
       operationId: "trackCashoutInitiated"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1708,9 +1642,6 @@ paths:
   /playtime/users/{userId}/payments:
     get:
       description: "Get list of user's cash outs (rewards)"
-      tags:
-        - Android
-        - PAYMENTS
       operationId: "getPayments"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1823,9 +1754,6 @@ paths:
   /playtime/users/{userId}/payments/{cashoutTransactionId}:
     get:
       description: "Get detailed information about payment"
-      tags:
-        - Android
-        - PAYMENTS
       operationId: "getPaymentDetails"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1910,9 +1838,6 @@ paths:
   /playtime/users/{userId}/payments/{paymentProvider}/{cashoutTransactionId}/resend:
     post:
       description: "Resend reward email for payment providers that support it"
-      tags:
-        - Android
-        - PAYMENTS
       operationId: "resendEmail"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1946,9 +1871,6 @@ paths:
   /playtime/users/{userId}/experimentVariations:
     get:
       description: "Get experiment variations assigned to user"
-      tags:
-        - Android
-        - TO_DELETE
       operationId: "getExperimentVariations"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -1982,9 +1904,6 @@ paths:
   /playtime/users/{userId}/experimentVariations/{variationId}/activation:
     post:
       description: "Activate experiment variation"
-      tags:
-        - Android
-        - TO_DELETE
       operationId: "activateExperimentVariation"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2002,12 +1921,229 @@ paths:
           $ref: '#/responses/4XX_REQUEST_ERROR'
         500:
           $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/challenges/claim-challenge:
+    post:
+      description: "Claiming challenge"
+      operationId: "claimChallenge"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Claim event request"
+          schema:
+            type: object
+            required:
+              - challengeId
+            properties:
+              challengeId:
+                type: string
+      responses:
+        200:
+          description: "Ok, if there is no event for current user then it returns empty json"
+          schema:
+            type: object
+            properties:
+              coins:
+                type: number
+              errorMessage:
+                type: string
+        404:
+          description: "Could not find user record with id"
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/challenges/claim-event:
+    post:
+      description: "Claiming event"
+      operationId: "claimChallengeEvent"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+        - name: request
+          in: body
+          description: "Claim event request"
+          schema:
+            type: object
+            required:
+              - challengeEventId
+            properties:
+              challengeEventId:
+                type: string
+      responses:
+        200:
+          description: "Ok, if there is no event for current user then it returns empty json"
+          schema:
+            type: object
+            properties:
+              amountString:
+                type: string
+              error:
+                type: string
+        404:
+          description: "Could not find user record with id"
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/challenges/event-configuration:
+    get:
+      description: "Get configuration for challenges"
+      operationId: "challengeEventConfiguration"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Ok, if there is no event for current user then it returns empty json"
+          schema:
+            type: object
+            properties:
+              startTime:
+                type: number
+                description: "point of event start in epochSeconds"
+              endTime:
+                type: number
+                description: "point of event end in epochSeconds"
+              challengesUpdateTime:
+                type: number
+                description: "point of event update in epochSeconds"
+              timestamp:
+                type: number
+                description: "current time in epochSecond"
+              challengeEventId:
+                type: string
+                description: "id of challenge event"
+              challengesUpdateText:
+                type: string
+                description: "updateText of the event"
+              claimWidget:
+                type: object
+                properties:
+                  bannerColor:
+                    type: string
+                  textColor:
+                    type: string
+                  claimButtonText:
+                    type: string
+                  eventRewardClaimed:
+                    type: boolean
+              tutorialSteps:
+                type: array
+                items:
+                  type: string
+              challenges:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    challengeId:
+                      type: string
+                    title:
+                      type: string
+                    icon:
+                      type: string
+                    progressCurrent:
+                      type: number
+                    progressMax:
+                      type: number
+                    rewardClaimed:
+                      type: boolean
+                    gameInfo:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        applicationId:
+                          type: string
+                        activityName:
+                          type: string
+                        title:
+                          type: string
+                        iconUrl:
+                          type: string
+                        imageUrl:
+                          type: string
+                        isEnabled:
+                          type: boolean
+                        installImageUrl:
+                          type: string
+                        infoTextInstallTop:
+                          type: string
+                        infoTextInstallBottom:
+                          type: string
+                        showInstallImage:
+                          type: boolean
+                        installationLink:
+                          type: string
+        404:
+          description: "Could not find user record with id"
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/users/{userId}/promotion-event-configuration:
+    get:
+      description: "Get configuration for promotion event"
+      operationId: "promotionEventConfiguration"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Ok, if there is no event for current user then it returns empty json"
+          schema:
+            type: object
+            properties:
+              startTime:
+                type: number
+                description: "point of event start in epochSeconds"
+              endTime:
+                type: number
+                description: "point of event end in epochSeconds"
+              timestamp:
+                type: number
+                description: "current time in epochSecond"
+              top:
+                type: object
+                description: "top part of the config"
+                properties:
+                  backgroundImage:
+                    type: string
+                  foregroundImage:
+                    type: string
+                  gradientTop:
+                    type: string
+                  gradientBottom:
+                    type: string
+                  cashoutButtonColor:
+                    type: string
+              offerModifiers:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - offerId
+                  properties:
+                    offerId:
+                      type: string
+                    offerImage:
+                      type: string
+                    badge:
+                      type: object
+                      properties:
+                        color:
+                          type: string
+                        displaySpecialBadge:
+                          type: boolean
+                        text:
+                          type: string
+        404:
+          description: "Could not find user record with id"
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
   /playtime/users/{userId}/top-running-bar:
     get:
       description: "Get top running bar configuration for user."
-      tags:
-        - Android
-        - TRACKING
       operationId: "topRunningBarConfiguration"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2041,9 +2177,6 @@ paths:
   /playtime/users/{userId}/user-notifications-state:
     post:
       description: "Save user notifications status"
-      tags:
-        - Android
-        - TRACKING
       operationId: "postUserNotificationsStatus"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2071,9 +2204,6 @@ paths:
   /playtime/users/{userId}/survey/{surveyId}/config:
     get:
       description: "Get survey config for specified survey"
-      tags:
-        - Android
-        - FEEDBACK
       operationId: "getUserSurveyConfig"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2135,9 +2265,6 @@ paths:
   /playtime/users/{userId}/survey/{surveyId}/response:
     post:
       description: "Save user survey answers"
-      tags:
-        - Android
-        - FEEDBACK
       operationId: "postUserSurveyResponse"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2159,9 +2286,6 @@ paths:
   /playtime/users/examination:
     get:
       description: "Get server nonce for SafetyNet request"
-      tags:
-        - Android
-        - ONBOARDING
       operationId: "getExaminationNonce"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2185,9 +2309,6 @@ paths:
                 description: "Nonce value"
     post:
       description: "Examine device attestation statement"
-      tags:
-        - Android
-        - ONBOARDING
       operationId: "examineDeviceAttestationStatement"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2215,50 +2336,9 @@ paths:
         500:
           $ref: '#/responses/5XX_SERVER_ERROR'
   # For external apps
-  /playtime/users/adUnitIdsByGoogleAdId:
-    get:
-      description: "Get user's ad unit ids by Google Ad Id and package id"
-      tags:
-        - Android
-        - GAMES
-      operationId: "getAdUnitIdsByGoogleAdId"
-      parameters:
-        - $ref: '#/parameters/MARKET_HEADER'
-        - name: packageId
-          in: query
-          description: "Package identifier"
-          type: string
-          required: true
-        - name: googleAdId
-          in: query
-          description: "Google Ad Id"
-          type: string
-          format: uuid
-          required: true
-      responses:
-        200:
-          description: "Ad unit setup"
-          schema:
-            type: object
-            required:
-              - banner_ad_unit_id
-              - rewarded_ad_unit_id
-              - interstitial_ad_unit_id
-            properties:
-              banner_ad_unit_id:
-                type: string
-              rewarded_ad_unit_id:
-                type: string
-              interstitial_ad_unit_id:
-                type: string
-        404:
-          description: "Gaid not found"
   /playtime/translations:
     get:
       description: "translations for our app"
-      tags:
-        - Android
-        - GENERIC
       operationId: "translations"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2290,9 +2370,6 @@ paths:
   /playtime/c/s:
     get:
       description: "Do sanity check for user"
-      tags:
-        - Android
-        - GENERIC
       operationId: "sanityCheck"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2317,9 +2394,6 @@ paths:
   /playtime/app/config:
     get:
       description: "App configuration"
-      tags:
-        - Android
-        - TO_DELETE
       operationId: "getAppConfig"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2363,9 +2437,6 @@ paths:
   /playtime/system/current-time:
     get:
       description: "Returns current time"
-      tags:
-        - Android
-        - GENERIC
       operationId: "getCurrentTime"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2379,9 +2450,6 @@ paths:
   /playtime/ios/news:
     get:
       description: "Get JustPlay news"
-      tags:
-        - iOS
-        - GENERIC
       operationId: "ios_getNews"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2444,9 +2512,6 @@ paths:
                         appScheme:
                           type: string
                           description: "appScheme"
-                        ppid:
-                          type: string
-                          description: "Custom install page ID"
         400:
           $ref: '#/responses/4XX_REQUEST_ERROR'
         500:
@@ -2454,9 +2519,6 @@ paths:
   /playtime/ios/translations:
     get:
       description: "Get translations for iOS app"
-      tags:
-        - iOS
-        - GENERIC
       operationId: "ios_getTranslations"
       parameters:
         - name: languageTag
@@ -2486,9 +2548,6 @@ paths:
   /playtime/ios/users:
     post:
       description: "Create a JustPlay user"
-      tags:
-        - iOS
-        - ONBOARDING
       operationId: "ios_createUser"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2537,9 +2596,6 @@ paths:
   /playtime/ios/users/online:
     get:
       description: "Get online users count"
-      tags:
-        - iOS
-        - TRACKING
       operationId: "ios_getOnlineUsers"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2562,9 +2618,6 @@ paths:
   /playtime/ios/users/{userId}:
     get:
       description: "Get user data"
-      tags:
-        - iOS
-        - GENERIC
       operationId: "ios_getUserData"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2687,6 +2740,15 @@ paths:
                     description: "[<null>, linearProgressBar, progressBarWithCircles, dashedLineProgressBar]. Cashout progress bar mode"
                   cashoutCoins:
                     $ref: '#/definitions/CASHOUT_COINS_API_DTO'
+                  webGamesSoftwall:
+                    type: object
+                    properties:
+                      badgeUrl:
+                        type: string
+                        description: "URL to badge icon"
+                      rejectDelay:
+                        type: integer
+                        description: "Time in milliseconds"
               timestamp:
                 type: string
                 format: date-time
@@ -2698,9 +2760,6 @@ paths:
   /playtime/ios/users/{userId}/claim-goal-coins:
     post:
       description: "Claim bonus coins from Game Coin Goals (iOS)"
-      tags:
-        - iOS
-        - TRACKING
       operationId: "iosClaimGoalCoins"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2716,9 +2775,6 @@ paths:
   /playtime/ios/users/{userId}/leaderboard:
     post:
       description: "Get current leaderboard (iOS)"
-      tags:
-        - iOS
-        - ENGAGEMENT
       operationId: "iosGetLeaderboard"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2757,9 +2813,6 @@ paths:
   /playtime/ios/users/{userId}/feedback/news:
     post:
       description: "News feedback"
-      tags:
-        - iOS
-        - FEEDBACK
       operationId: "iosFeedbackNews"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2784,9 +2837,6 @@ paths:
   /playtime/ios/users/{userId}/feedback/propose-game-feature:
     post:
       description: "Propose game feature feedback"
-      tags:
-        - iOS
-        - FEEDBACK
       operationId: "iosFeedbackProposeGameFeature"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2811,9 +2861,6 @@ paths:
   /playtime/ios/users/{userId}/feedback/game:
     post:
       description: "Game feedback"
-      tags:
-        - iOS
-        - FEEDBACK
       operationId: "iosFeedbackGame"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2838,9 +2885,6 @@ paths:
   /playtime/ios/users/{userId}/provider-survey:
     post:
       description: "Submit provider survey"
-      tags:
-        - iOS
-        - FEEDBACK
       operationId: "ios_submitProviderSurvey"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2872,9 +2916,6 @@ paths:
   /playtime/ios/users/{userId}/interview:
     get:
       description: "Get user interview data"
-      tags:
-        - iOS
-        - GENERIC
       operationId: "ios_getInterviewData"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2895,9 +2936,6 @@ paths:
           $ref: '#/responses/5XX_SERVER_ERROR'
     post:
       description: "Save user's response"
-      tags:
-        - iOS
-        - GENERIC
       operationId: "ios_saveInterviewData"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2923,9 +2961,6 @@ paths:
   /playtime/ios/users/{userId}/idfa:
     post:
       description: "Associate IDFA with user"
-      tags:
-        - iOS
-        - ONBOARDING
       operationId: "ios_setIdfa"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2953,9 +2988,6 @@ paths:
   /playtime/ios/users/{userId}/idfv:
     post:
       description: "Associate IDFV with user"
-      tags:
-        - iOS
-        - ONBOARDING
       operationId: "ios_setIdfv"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -2983,9 +3015,6 @@ paths:
   /playtime/ios/users/{userId}/deviceToken:
     post:
       description: "Associate device token with user"
-      tags:
-        - iOS
-        - ONBOARDING
       operationId: "ios_setDeviceToken"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3012,9 +3041,6 @@ paths:
   /playtime/ios/users/{userId}/adjustId:
     post:
       description: "Associate Adjust Id with user"
-      tags:
-        - iOS
-        - ONBOARDING
       operationId: "ios_setAdjustId"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3041,9 +3067,6 @@ paths:
   /playtime/ios/users/{userId}/firebaseAppInstanceId:
     post:
       description: "Associate firebase app instance id with user"
-      tags:
-        - iOS
-        - ONBOARDING
       operationId: "iosSetFirebaseInstanceId"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3070,9 +3093,6 @@ paths:
   /playtime/ios/users/{userId}/games/played:
     get:
       description: "Get user games already played"
-      tags:
-        - iOS
-        - ENGAGEMENT
       operationId: "ios_getPlayedGames"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3098,10 +3118,82 @@ paths:
   /playtime/ios/users/{userId}/games/new:
     get:
       description: "Get user games never played"
-      tags:
-        - iOS
-        - ENGAGEMENT
       operationId: "ios_getNewGames"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Games that were never played"
+          schema:
+            type: object
+            required:
+              - games
+            properties:
+              games:
+                type: array
+                description: "List of games"
+                items:
+                  $ref: '#/definitions/IOS_GAME'
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/games/v2/played:
+    get:
+      description: "Get user games already played"
+      operationId: "ios_getPlayedGamesV2"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Games that were already played"
+          schema:
+            type: object
+            required:
+              - games
+            properties:
+              games:
+                type: array
+                description: "List of games"
+                items:
+                  $ref: '#/definitions/IOS_GAME'
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/games/v2/new:
+    get:
+      description: "Get user games never played"
+      operationId: "ios_getNewGamesV2"
+      parameters:
+        - $ref: '#/parameters/MARKET_HEADER'
+        - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
+        - $ref: '#/parameters/USER_ID_PATH'
+      responses:
+        200:
+          description: "Games that were never played"
+          schema:
+            type: object
+            required:
+              - games
+            properties:
+              games:
+                type: array
+                description: "List of games"
+                items:
+                  $ref: '#/definitions/IOS_GAME'
+        400:
+          $ref: '#/responses/4XX_REQUEST_ERROR'
+        500:
+          $ref: '#/responses/5XX_SERVER_ERROR'
+  /playtime/ios/users/{userId}/games/v2/all:
+    get:
+      description: "Get all iOS games available. Equal to 'new' games for brand new user"
+      operationId: "ios_getAllGamesV2"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
         - $ref: '#/parameters/IOS_APP_VERSION_HEADER'
@@ -3126,9 +3218,6 @@ paths:
   /playtime/ios/users/{userId}/games/highlighted:
     get:
       description: "Get user games for highlighting when no cashouts"
-      tags:
-        - iOS
-        - ENGAGEMENT
       operationId: "ios_getHighlightedGames"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3154,9 +3243,6 @@ paths:
   /playtime/ios/users/{userId}/games/all:
     get:
       description: "Get user all games"
-      tags:
-        - iOS
-        - ENGAGEMENT
       operationId: "ios_getAllGames"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3182,9 +3268,6 @@ paths:
   /playtime/ios/users/{userId}/verification/initiate:
     post:
       description: "Initiate user verification session"
-      tags:
-        - iOS
-        - VERIFICATION
       operationId: "ios_initiateVerification"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3253,9 +3336,6 @@ paths:
   /playtime/ios/users/{userId}/verification/verify-face:
     post:
       description: "Verify user's face"
-      tags:
-        - iOS
-        - VERIFICATION
       operationId: "ios_verifyFace"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3291,9 +3371,6 @@ paths:
   /playtime/ios/users/{userId}/verification/examination:
     get:
       description: "Get server Challenge for IOS DeviceCheck request"
-      tags:
-        - iOS
-        - VERIFICATION
       operationId: "verificationGetIosExaminationChallenge"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3313,9 +3390,6 @@ paths:
                 description: "Challenge value"
     post:
       description: "Examine IOS device attestation statement"
-      tags:
-        - iOS
-        - VERIFICATION
       operationId: "verificationIosExamineDeviceAttestationStatement"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3352,9 +3426,6 @@ paths:
   /playtime/ios/users/{userId}/verification/jailBreak:
     post:
       description: "iOS. Verify jailBreak usage"
-      tags:
-        - iOS
-        - VERIFICATION
       operationId: "iosJailBreakVerification"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3382,9 +3453,6 @@ paths:
   /playtime/ios/users/{userId}/verification/location:
     post:
       description: "iOS. Verify GPS location"
-      tags:
-        - iOS
-        - VERIFICATION
       operationId: "iosLocationVerification"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3412,9 +3480,6 @@ paths:
   /playtime/ios/users/{userId}/verification/validateEmail:
     post:
       description: "iOS. Validate email"
-      tags:
-        - iOS
-        - VERIFICATION
       operationId: "iosEmailValidation"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3449,9 +3514,6 @@ paths:
   /playtime/ios/users/{userId}/verification/validateUserHandle:
     post:
       description: "iOS. Validate Venmo User Handle"
-      tags:
-        - iOS
-        - VERIFICATION
       operationId: "iosVenmoUserHandleValidation"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3486,9 +3548,6 @@ paths:
   /playtime/ios/users/{userId}/cashout:
     get:
       description: "Get user cashout data"
-      tags:
-        - iOS
-        - CASHOUT
       operationId: "ios_getCashoutData"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3592,9 +3651,6 @@ paths:
   /playtime/ios/users/{userId}/cashout/demand:
     post:
       description: "Initiate cashout"
-      tags:
-        - iOS
-        - CASHOUT
       operationId: "ios_initiateCashoutDemand"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3648,9 +3704,6 @@ paths:
   /playtime/ios/users/{userId}/cashout/stats:
     get:
       description: "Get user cashout statistics"
-      tags:
-        - iOS
-        - CASHOUT
       operationId: "ios_getCashoutStats"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3686,9 +3739,6 @@ paths:
   /playtime/ios/users/{userId}/cashout/last-successful-transaction:
     get:
       description: "Get user last successful cashout transaction"
-      tags:
-        - iOS
-        - CASHOUT
       operationId: "iosGetLastSuccessfulTransaction"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3724,9 +3774,6 @@ paths:
   /playtime/ios/users/{userId}/payments:
     get:
       description: "Get list of user's cash outs (rewards)"
-      tags:
-        - iOS
-        - PAYMENTS
       operationId: "ios_getPayments"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3839,9 +3886,6 @@ paths:
   /playtime/ios/users/{userId}/payments/{cashoutTransactionId}:
     get:
       description: "Get detailed information about payment"
-      tags:
-        - iOS
-        - PAYMENTS
       operationId: "ios_getPaymentDetails"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3927,9 +3971,6 @@ paths:
   /playtime/ios/users/{userId}/examination:
     get:
       description: "Get server Challenge for IOS DeviceCheck request"
-      tags:
-        - iOS
-        - ONBOARDING
       operationId: "getIosExaminationChallenge"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3948,9 +3989,6 @@ paths:
                 description: "Challenge value"
     post:
       description: "Examine IOS device attestation statement"
-      tags:
-        - iOS
-        - ONBOARDING
       operationId: "iosExamineDeviceAttestationStatement"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -3985,9 +4023,6 @@ paths:
   /playtime/ios/users/{userId}/top-running-bar:
     get:
       description: "Get top running bar configuration for user."
-      tags:
-        - iOS
-        - TRACKING
       operationId: "iosTopRunningBarConfiguration"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -4021,9 +4056,6 @@ paths:
   /playtime/ios/users/{userId}/adUnitIds:
     get:
       description: "Get ad units configuration for user."
-      tags:
-        - iOS
-        - GAMES
       operationId: "iosAdUnitIds"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -4054,9 +4086,6 @@ paths:
   /playtime/ios/users/{userId}/achievements:
     get:
       description: "Get achievements for user."
-      tags:
-        - iOS
-        - ENGAGEMENT
       operationId: "iosUserAchievements"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -4102,9 +4131,6 @@ paths:
   /playtime/ios/users/{userId}/user-notifications-state:
     post:
       description: "Save user notifications status"
-      tags:
-        - iOS
-        - TRACKING
       operationId: "iosPostUserNotificationsStatus"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -4132,9 +4158,6 @@ paths:
   /playtime/ios/users/{userId}/consent:
     post:
       description: "Track user consent"
-      tags:
-        - iOS
-        - ENGAGEMENT
       operationId: "iosSetConsentInfo"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -4165,9 +4188,6 @@ paths:
   /playtime/location/gdprState:
     get:
       description: "Is GDPR policy applies to user"
-      tags:
-        - Android
-        - GENERIC
       operationId: "location_gdprState"
       parameters:
         - $ref: '#/parameters/MARKET_HEADER'
@@ -4190,9 +4210,6 @@ paths:
   /playtime/service/experiments:
     get:
       description: "Experiments for admin"
-      tags:
-        - Android
-        - TO_DELETE
       operationId: "admin_experiments"
       responses:
         200:
@@ -4209,9 +4226,6 @@ paths:
   /playtime/service/experiments/{experimentKey}:
     get:
       description: "Experiment for admin"
-      tags:
-        - Android
-        - TO_DELETE
       operationId: "admin_experiment"
       parameters:
         - in: path
@@ -4251,45 +4265,30 @@ parameters:
     description: "Android app version"
     type: integer
     required: true
-    x-category:
-      - APP_CONFIG
-
   IOS_APP_VERSION_HEADER:
     name: X-iOS-AppVersion
     in: header
     description: "iOS app version"
     type: integer
     required: true
-    x-category:
-      - APP_CONFIG
-
   VERIFICATION_SESSION_HEADER:
     name: X-VSession
     in: header
     description: "Verification session id"
     type: string
     required: true
-    x-category:
-      - SESSION_INFO
-
   DESIRED_APP_VERSION_HEADER:
     name: X-Playtime-Desired-AppVersion
     in: header
-    description: "Desired Android app version"
+    description: "Android app version"
     type: integer
     required: true
-    x-category:
-      - APP_CONFIG
-
   MARKET_HEADER:
     name: X-Playtime-Market
     in: header
     description: "Market (for routing to backend instance)"
     type: string
     required: false
-    x-category:
-      - APP_CONFIG
-
   USER_ID_PATH:
     name: userId
     in: path
@@ -4297,26 +4296,18 @@ parameters:
     type: string
     format: uuid
     required: true
-    x-category:
-      - PII
-
   GEO_LOCATION_HEADER:
     name: X-Client-Geo-Location
     in: header
     description: "User location"
     type: string
     required: true
-    x-category:
-      - GEO_DATA
-
   IOS_APP_ENV_HEADER:
     name: X-iOS-Env
     in: header
     description: "iOS app environment"
     type: string
     required: true
-    x-category:
-      - APP_CONFIG
 definitions:
   GAME_GOAL:
     type: object
@@ -4371,21 +4362,15 @@ definitions:
     properties:
       userId:
         type: string
-        x-category:
-          - PII
         format: uuid
       market:
         type: string
-        x-category:
-          - PII
         description: "JP market"
       deviceAttestationAtUserCreation:
         type: boolean
         description: "Should device attestation be triggered by the app right after user creation"
       showPointingArrow:
         type: boolean
-        x-category:
-          - PII
         description: "Pointing arrow enhancement"
       welcomeBonusPopupAvailable:
         type: boolean
@@ -4404,13 +4389,11 @@ definitions:
         description: "Show top running bar"
       useGdpr:
         type: boolean
-        x-category:
-          - PII
-        description: "Is GDPR policy applies to user"
+        description: "Is GDPR policy applies to user. Deprecated in favor of privacyRegulation from 68th (Android) version."
+      privacyRegulation:
+        $ref: '#/definitions/PRIVACY_REGULATION'
       userConfig:
         type: object
-        x-category:
-          - PII
         required:
           - experimentVariations
         properties:
@@ -4435,51 +4418,33 @@ definitions:
   CREATE_USER_REQUEST:
     description: 'Android`s request to create user'
     type: object
-    x-category:
-      - PII
     properties:
       networkCountry:
         type: string
         description: "Mobile network country"
-        x-category:
-          - PII
       networkOperatorName:
         type: string
         description: "Mobile network operator name"
-        x-category:
-          - PII
       simCountry:
         type: string
         description: "Sim country"
-        x-category:
-          - PII
       simOperatorName:
         type: string
         description: "Sim operator name"
-        x-category:
-          - PII
       deviceLocale:
         type: string
         description: "Device locale"
-        x-category:
-          - PII
       installedFromStore:
         type: boolean
         description: "Is game installed from store (app driven)"
-        x-category:
-          - PII
       userPublicKey:
         type: string
         description: "Public key for app-backend interactions"
-        x-category:
-          - PII
       signatureText:
         type: string
         description: "Signature of user creation request"
       simInfoList:
         type: array
-        x-category:
-          - PII
         items:
           type: object
           required:
@@ -4492,16 +4457,12 @@ definitions:
             networkCountry:
               type: string
               description: "Mobile network country"
-              x-category:
-                - PII
             networkOperatorName:
               type: string
               description: "Mobile network operator name"
             simCountry:
               type: string
               description: "Sim country"
-              x-category:
-                - PII
             simOperatorName:
               type: string
               description: "Sim operator name"
@@ -4518,89 +4479,55 @@ definitions:
       - donation
       - enabled
       - bonusEnabled
-    x-category:
-      - CASHOUT
     properties:
       displayName:
         type: string
         description: "Provider display name"
-        x-category:
-          - CASHOUT
       url:
         type: string
         description: "URL to provider website"
-        x-category:
-          - CASHOUT
       videoUrl:
         type: string
         description: "URL to provider video"
-        x-category:
-          - CASHOUT
       iconUrl:
         type: string
         description: "URL to provider icon"
-        x-category:
-          - CASHOUT
       text:
         type: string
         description: "Provider description"
-        x-category:
-          - CASHOUT
       shortText:
         type: string
-        description: "Short provider description"
-        x-category:
-          - CASHOUT
+        description: "Sort provider description"
       provider:
         type: string
         description: "Payment provider name"
-        x-category:
-          - CASHOUT
       donation:
         type: boolean
         description: "Is donation"
-        x-category:
-          - CASHOUT
       disclaimer:
         type: string
         description: "Payment provider disclaimer"
-        x-category:
-          - CASHOUT
       emailHint:
         type: string
         description: "Hint for email text input"
-        x-category:
-          - CASHOUT
       minimumAmount:
         type: string
         description: "Minimal amount for cash out"
-        x-category:
-          - CASHOUT
       maximumAmount:
         type: string
         description: "Maximum amount for cash out"
-        x-category:
-          - CASHOUT
       enabled:
         type: boolean
         description: "Is cash out enabled"
-        x-category:
-          - CASHOUT
       bonusEnabled:
         type: boolean
         description: "Is bonus cash out enabled"
-        x-category:
-          - CASHOUT
       identifierType:
         type: string
         description: "One of [email|user_handle|phone_number]"
-        x-category:
-          - CASHOUT
       identifierHint:
         type: string
         description: "Hint for identifierType input"
-        x-category:
-          - CASHOUT
   IOS_GAME:
     type: object
     required:
@@ -4614,253 +4541,155 @@ definitions:
       - iosApplicationId
       - iosGameUrl
       - showBadge
-    x-category:
-      - GAME_DATA
     properties:
       id:
         type: integer
         description: "Game unique id"
-        x-category:
-          - GAME_DATA
       applicationId:
         type: string
         description: "Game application id in app store"
-        x-category:
-          - GAME_DATA
       name:
         type: string
         description: "Game name"
-        x-category:
-          - GAME_DATA
       description:
         type: string
         description: "Game description"
-        x-category:
-          - GAME_DATA
       iconFilename:
         type: string
         description: "URL of game icon"
-        x-category:
-          - GAME_DATA
       imageFilename:
         type: string
         description: "URL of game image"
-        x-category:
-          - GAME_DATA
       infoTextInstall:
         type: string
         description: "Text on install preview"
-        x-category:
-          - GAME_DATA
       iosApplicationId:
         type: string
-        description: "ID on App Store"
-        x-category:
-          - GAME_DATA
+        description: "id on App Store"
       iosGameUrl:
         type: string
         description: "URL to launch application in iOS"
-        x-category:
-          - GAME_DATA
       preGameScreen:
         type: object
-        x-category:
-          - GAME_DATA
         properties:
           title:
             type: string
             description: "Title for pre screen"
-            x-category:
-              - GAME_DATA
           description:
             type: string
             description: "Description for pre screen"
-            x-category:
-              - GAME_DATA
           tags:
             type: array
             items:
               type: string
               description: "Tags for short-describing game"
-              x-category:
-                - GAME_DATA
           images:
             type: array
             items:
               type: string
               description: "Images of game for pre screen"
-              x-category:
-                - GAME_DATA
       showBadge:
         type: boolean
         description: "Flag to show Most Coins badge"
-        x-category:
-          - GAME_DATA
-      ppid:
-        type: string
-        description: "Game ppid"
-        x-category:
-          - GAME_DATA
       activeUsers:
         type: integer
         description: "Currently active users"
-        x-category:
-          - GAME_DATA
       timeSpentMinutes:
         type: integer
         description: "Minutes spent in game"
-        x-category:
-          - GAME_DATA
       userGameRank:
         type: object
-        x-category:
-          - GAME_DATA
         properties:
           id:
             type: integer
-            description: "It can be 0,1,2 and up to some max number"
-            x-category:
-              - GAME_DATA
+            description: "it can be 0,1,2 and up to some max number"
           name:
             type: string
             description: "Seeker, Watcher and etc"
-            x-category:
-              - GAME_DATA
           progress:
             type: number
             format: double
-            description: "Decimal number 0..1, represents progress"
-            x-category:
-              - GAME_DATA
+            description: "decimal number 0..1, represents progress"
+      webglGame:
+        type: object
+        required:
+          - url
+          - adInfo
+        properties:
+          url:
+            type: string
+            description: "URL to webgl game"
+          adInfo:
+            type: object
+            required:
+              - banner
+              - interstitial
+              - rewarded
+            properties:
+              banner:
+                type: object
+                $ref: '#/definitions/AD_TYPE_INFO'
+              interstitial:
+                type: object
+                $ref: '#/definitions/AD_TYPE_INFO'
+              rewarded:
+                type: object
+                $ref: '#/definitions/AD_TYPE_INFO'
+  AD_TYPE_INFO:
+    type: object
+    required:
+      - adUnitId
+      - placementName
+    properties:
+      adUnitId:
+        type: string
+      placementName:
+        type: string
   IN_APP_INSTALL_DETAILS:
     type: object
-    x-category:
-      - APP_INSTALLATION
     properties:
       installMethod:
         type: string
-        x-category:
-          - APP_INSTALLATION
       packageName:
         type: string
-        x-category:
-          - APP_INSTALLATION
       appName:
         type: string
-        x-category:
-          - APP_INSTALLATION
       description:
         type: string
-        x-category:
-          - APP_INSTALLATION
       iconUrl:
         type: string
-        x-category:
-          - APP_INSTALLATION
       screenshots:
         type: array
         items:
           type: string
-          x-category:
-            - APP_INSTALLATION
       developer:
         type: string
-        x-category:
-          - APP_INSTALLATION
       apkFileSize:
         type: number
-        x-category:
-          - APP_INSTALLATION
       updateTimestamp:
         type: number
-        x-category:
-          - APP_INSTALLATION
       website:
         type: string
-        x-category:
-          - APP_INSTALLATION
       email:
         type: string
-        x-category:
-          - APP_INSTALLATION
       privacyLink:
         type: string
-        x-category:
-          - APP_INSTALLATION
       permissions:
         type: string
-        x-category:
-          - APP_INSTALLATION
   GAME_ADDITIONAL_WIDGETS:
     type: object
     description: "Additional widgets for a game"
-    x-category:
-      - GAME_DATA
     properties:
-      topRightBadgeUrl:
-        type: string
-        description: "url for top right badge"
-        x-category:
-          - UI_ENHANCEMENT
-      coinsBadgeUrl:
-        type: string
-        description: "url for coins"
-        x-category:
-          - UI_ENHANCEMENT
-      coinsEarned:
-        type: number
-        description: "amount of coins for a game"
-        x-category:
-          - GAME_DATA
       moneyBadgeUrl:
         type: string
         description: "url for money badge"
-        x-category:
-          - UI_ENHANCEMENT
       moneyPaidOut:
         type: number
         description: "amount of money for a game"
-        x-category:
-          - GAME_DATA
-      onlineStarsUrl:
-        type: string
-        description: "url for stars badge"
-        x-category:
-          - UI_ENHANCEMENT
-      onlinePlayersCount:
-        type: number
-        description: "amount of players for a game"
-        x-category:
-          - GAME_DATA
-  TOP_PART_WIDGET:
-    type: object
-    required:
-      - title
-      - subTitle
-    x-category:
-      - UI_ENHANCEMENT
-    properties:
-      icon:
-        type: string
-        description: "Link to widget icon picture"
-        x-category:
-          - UI_ENHANCEMENT
-      title:
-        type: string
-        description: "Widget title"
-        x-category:
-          - UI_ENHANCEMENT
-      subTitle:
-        type: string
-        description: "Widget subtitle"
-        x-category:
-          - UI_ENHANCEMENT
   CASHOUT_COINS_API_DTO:
     type: object
     required:
       - mode
-    x-category:
-      - CASHOUT
     properties:
       mode:
         type: string
@@ -4868,67 +4697,46 @@ definitions:
           - "cashoutNow"
           - "cashoutForCoins"
           - "homeScreenCoins"
-        x-category:
-          - CASHOUT
       amount:
         type: integer
-        x-category:
-          - CASHOUT
   LIGHT_EXPERIMENT_DTO:
     type: object
     required:
       - key
       - status
-    x-category:
-      - EXPERIMENT_DATA
     properties:
       key:
         type: string
-        x-category:
-          - EXPERIMENT_DATA
       status:
         type: string
         enum: [ "RUNNING", "NOT_STARTED", "FINISHED" ]
-        x-category:
-          - EXPERIMENT_DATA
   FULL_EXPERIMENT_DTO:
     type: object
-    x-category:
-      - EXPERIMENT_DATA
     properties:
       key:
         type: string
-        x-category:
-          - EXPERIMENT_DATA
       status:
         type: string
         enum: [ "RUNNING", "NOT_STARTED", "FINISHED" ]
-        x-category:
-          - EXPERIMENT_DATA
       startedAt:
         type: string
         format: date-time
-        x-category:
-          - EXPERIMENT_DATA
       finishedAt:
         type: string
         format: date-time
-        x-category:
-          - EXPERIMENT_DATA
       minimalAppVersion:
         type: integer
-        x-category:
-          - APP_CONFIG
       allocation:
         type: object
-        x-category:
-          - EXPERIMENT_DATA
         properties:
           variationKey:
             type: string
-            x-category:
-              - EXPERIMENT_DATA
           allocation:
             type: number
-            x-category:
-              - EXPERIMENT_DATA
+  PRIVACY_REGULATION:
+    type: string
+    description: "Type or privacy mechanics to use"
+    enum:
+      - "<null>"
+      - "GDPR"
+      - "OPT_OUT"

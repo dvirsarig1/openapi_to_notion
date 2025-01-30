@@ -1,10 +1,6 @@
 package template
 
-import notion.BlocksBuilder
 import notion.BlocksBuilder.RowsBuilder
-import notion.NotionAdapter
-import notion.blocks
-import notion.richText
 import template.components.exampleItem
 import template.components.pageHeader
 import template.components.serverUrl
@@ -12,9 +8,13 @@ import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.media.*
 import io.swagger.v3.oas.models.responses.ApiResponse
 import io.swagger.v3.parser.core.models.SwaggerParseResult
+import notion.*
+import notion.BlocksBuilder
 import notion.api.v1.model.blocks.Block
 import notion.api.v1.model.common.BlockColor
 import notion.api.v1.model.common.RichTextColor.*
+import notion.blocks
+import notion.richText
 
 class NotionTemplate(
     private val swagger: SwaggerParseResult,
@@ -399,6 +399,33 @@ class NotionTemplate(
     }
 
     fun createTable(pageId: String, pathLinksMap: Map<String, String>, fieldCategory: String?): List<Block> = blocks {
+        val paths = swagger.openAPI.paths.flatMap { (path, pathItem) ->
+            pathItem.readOperationsMap().map { (method, operation) ->
+                Triple(path, method.name, operation)
+            }
+        }.filter { (path, _, _) -> doesPathContainFieldWithCategory(path, fieldCategory) }
+
+        if (paths.isEmpty()) return@blocks
+
+        val chunkedPaths = paths.chunked(99)
+
+        tableWithPaths(chunkedPaths.first(), pathLinksMap, pageId)
+
+        if (chunkedPaths.size > 1) {
+            heading2("⚡ Additional Endpoints", color = Blue, bold = true)
+            chunkedPaths.drop(1).forEachIndexed { index, chunk ->
+                toggle("More Endpoints ${index + 1}") {
+                    tableWithPaths(chunk, pathLinksMap, pageId)
+                }
+            }
+        }
+    }
+
+    private fun BlocksBuilder.tableWithPaths(
+        paths: List<Triple<String, String, Operation>>,
+        pathLinksMap: Map<String, String>,
+        pageId: String
+    ) {
         table(4, hasColumnHeader = true) {
             row {
                 cell(richText("Method"))
@@ -406,28 +433,24 @@ class NotionTemplate(
                 cell(richText("Authentication"))
                 cell(richText("Description"))
             }
+            paths.forEach { (path, method, operation) ->
+                val security = operation.security ?: swagger.openAPI.security
+                val authText = if (security.isNullOrEmpty()) {
+                    swagger.openAPI.components?.securitySchemes?.get("BasicAuth")?.let { "BasicAuth" } ?: ""
+                } else {
+                    security.flatMap { it.keys }.joinToString(", ")
+                }
 
-            for (path in swagger.openAPI.paths) {
-                for ((method, operation) in path.value.readOperationsMap()) {
-                    if (!doesPathContainFieldWithCategory(path.key, fieldCategory)) continue
-                    val security = operation.security ?: swagger.openAPI.security
-                    val authText = if (security.isNullOrEmpty()) {
-                        swagger.openAPI.components?.securitySchemes?.get("BasicAuth")?.let { "BasicAuth" } ?: ""
+                row {
+                    cell(richText(method, code = true, color = Green))
+                    val blockId = pathLinksMap[path]
+                    if (blockId.isNullOrEmpty()) {
+                        cell(richText(path, code = true, color = Default))
                     } else {
-                        security.flatMap { it.keys }.joinToString(", ")
+                        cell(richText(path, link = "https://www.notion.so/JustPlay-API-${pageId.replace("-", "")}?pvs=97#$blockId"))
                     }
-
-                    row {
-                        cell(richText(method.name, code = true, color = Green))
-                        val blockId = pathLinksMap[path.key]
-                        if (blockId.isNullOrEmpty()) {
-                            cell(richText(path.key, code = true, color = Default))
-                        } else {
-                            cell(richText(path.key, link = "https://www.notion.so/JustPlay-API-${pageId.replace("-", "")}?pvs=97#$blockId"))
-                        }
-                        cell(richText(authText))
-                        cell(richText(operation.summary ?: operation.description ?: ""))
-                    }
+                    cell(richText(authText))
+                    cell(richText(operation.summary ?: operation.description ?: ""))
                 }
             }
         }
