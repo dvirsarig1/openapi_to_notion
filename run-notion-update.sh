@@ -1,20 +1,15 @@
 #!/bin/bash
 
-# הדפס הודעת התחלה
 echo "Running Notion update process..."
 
-# הגדר את ה-Token של Notion
-export NOTION_TOKEN="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"
+export NOTION_TOKEN=$(gcloud secrets versions access latest --secret=notion-token)
 
-# בדוק אם הקובץ קיים
 if [ ! -f "build/libs/app.jar" ]; then
   echo "Error: build/libs/app.jar not found!"
   exit 1
 fi
 
-# הרץ את התוכנית בקוטלין
 java -jar build/libs/app.jar \
   --field-category="PII"
 
-# הודעת סיום
 echo "Notion update completed!"
